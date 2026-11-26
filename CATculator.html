@@ -1,0 +1,4992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CATculator — Cost And Tax Calculator</title>
+  <link id="favicon" rel="icon" type="image/svg+xml">
+  <style>
+    :root[data-theme="cat"] {
+      --primary: #f97316;
+      --primary-hover: #ea580c;
+      --secondary: #fbbf24;
+      --accent: #8b5cf6;
+      --bg: #fef3c7;
+      --bg-gradient: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+      --surface: #ffffff;
+      --surface-alt: #fff7ed;
+      --text: #1f2937;
+      --text-light: #6b7280;
+      --text-muted: #9ca3af;
+      --border: #fde68a;
+      --border-strong: #f59e0b;
+      --success: #10b981;
+      --error: #ef4444;
+      --shadow: 0 4px 6px -1px rgba(251, 146, 60, 0.15), 0 2px 4px -2px rgba(251, 146, 60, 0.1);
+      --shadow-hover: 0 10px 15px -3px rgba(251, 146, 60, 0.2), 0 4px 6px -4px rgba(251, 146, 60, 0.15);
+      --radius: 16px;
+      --radius-sm: 8px;
+      --cat-display: block;
+      --classic-display: none;
+      --header-bg: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+      --header-text: #ffffff;
+      --tab-active-bg: #ffffff;
+      --tab-active-text: #f97316;
+      --tab-inactive-bg: rgba(255, 255, 255, 0.5);
+      --tab-inactive-text: #92400e;
+    }
+
+    :root[data-theme="classic"] {
+      --primary: #1e40af;
+      --primary-hover: #1e3a8a;
+      --secondary: #64748b;
+      --accent: #475569;
+      --bg: #f8fafc;
+      --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      --surface: #ffffff;
+      --surface-alt: #f1f5f9;
+      --text: #0f172a;
+      --text-light: #475569;
+      --text-muted: #94a3b8;
+      --border: #cbd5e1;
+      --border-strong: #64748b;
+      --success: #059669;
+      --error: #dc2626;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-hover: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+      --radius: 6px;
+      --radius-sm: 4px;
+      --cat-display: none;
+      --classic-display: block;
+      --header-bg: #1e293b;
+      --header-text: #f8fafc;
+      --tab-active-bg: #1e40af;
+      --tab-active-text: #ffffff;
+      --tab-inactive-bg: #e2e8f0;
+      --tab-inactive-text: #475569;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+    .numbers { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 20px 24px;
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .header-title { display: flex; align-items: center; gap: 14px; }
+
+    .logo-cat, .logo-classic { width: 48px; height: 48px; flex-shrink: 0; }
+    .logo-cat { display: var(--cat-display); }
+    .logo-classic { display: var(--classic-display); }
+
+    .header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; }
+    .header-subtitle { font-size: 0.875rem; opacity: 0.9; margin-top: 2px; }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: background 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .theme-toggle:hover { background: rgba(255, 255, 255, 0.25); }
+
+    .toggle-switch {
+      width: 36px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      position: relative;
+      transition: background 0.2s ease;
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s ease;
+    }
+
+    [data-theme="classic"] .toggle-switch { background: var(--primary); }
+    [data-theme="classic"] .toggle-switch::after { transform: translateX(16px); }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-strong) transparent;
+    }
+
+    .tabs {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-gradient);
+      padding: 10px 0;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tabs::-webkit-scrollbar { height: 4px; }
+    .tabs::-webkit-scrollbar-track { background: transparent; }
+    .tabs::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+    .tab-btn {
+      flex-shrink: 0;
+      padding: 10px 18px;
+      border: none;
+      background: var(--tab-inactive-bg);
+      color: var(--tab-inactive-text);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-btn:hover { background: var(--surface); box-shadow: var(--shadow); }
+    .tab-btn.active { background: var(--tab-active-bg); color: var(--tab-active-text); box-shadow: var(--shadow); }
+
+    .tab-icon { width: 16px; height: 16px; }
+
+    .tab-content { display: none; animation: fadeIn 0.3s ease; }
+    .tab-content.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .card:hover { box-shadow: var(--shadow-hover); }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-description { font-size: 0.875rem; color: var(--text-light); margin-bottom: 16px; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-light);
+      margin-bottom: 6px;
+    }
+
+    input[type="number"], input[type="text"], input[type="date"], select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      background: var(--surface);
+      color: var(--text);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+    }
+
+    [data-theme="classic"] input:focus,
+    [data-theme="classic"] select:focus {
+      box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15);
+    }
+
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-hover); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary { background: var(--surface-alt); color: var(--text); border: 1.5px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+
+    .btn-small { padding: 6px 12px; font-size: 0.8rem; }
+    .btn-block { width: 100%; }
+
+    .swap-btn {
+      align-self: flex-end;
+      margin-bottom: 14px;
+      width: 36px;
+      height: 36px;
+      border: 1.5px solid var(--border);
+      background: var(--surface-alt);
+      color: var(--primary);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .swap-btn:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      transform: rotate(180deg);
+    }
+
+    .form-row-swap {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 8px;
+      align-items: end;
+    }
+
+    @media (max-width: 640px) {
+      .form-row-swap {
+        grid-template-columns: 1fr auto 1fr;
+      }
+      .swap-btn {
+        margin-bottom: 0;
+        align-self: center;
+      }
+    }
+
+    .result {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--surface-alt);
+      border-radius: var(--radius-sm);
+      border-left: 4px solid var(--primary);
+    }
+
+    .result-alert {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--error);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .result-alert-reason {
+      margin-top: 4px;
+      font-size: 0.8rem;
+      font-weight: 400;
+      opacity: 0.85;
+    }
+
+    .result-status.pending {
+      color: var(--text-muted);
+    }
+
+    .result-status.saved {
+      color: var(--success);
+    }
+
+    .result-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .result-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+      word-break: break-word;
+    }
+
+    .result-details { margin-top: 10px; display: grid; gap: 6px; }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      padding: 4px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .result-row:last-child { border-bottom: none; }
+    .result-row-label { color: var(--text-light); }
+
+    .result-row-value {
+      font-weight: 600;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .result-row-value.positive { color: var(--success); }
+    .result-row-value.negative { color: var(--error); }
+
+    .result-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+    .mini-chart {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .mini-chart-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .mini-chart-row {
+      display: grid;
+      grid-template-columns: 76px minmax(40px, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      margin: 9px 0;
+      font-size: 0.85rem;
+    }
+
+    .mini-chart-track {
+      height: 12px;
+      background: var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .mini-chart-bar {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 10px;
+    }
+
+    .mini-chart-bar.best {
+      background: var(--success);
+    }
+
+    .mini-chart-value {
+      font-weight: 600;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .invoice-chart-layout {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .invoice-pie {
+      width: 150px;
+      height: 150px;
+      flex: 0 0 150px;
+      border-radius: 50%;
+    }
+
+    .invoice-chart-legend {
+      display: grid;
+      gap: 9px;
+      min-width: 180px;
+      flex: 1;
+    }
+
+    .invoice-chart-legend-row {
+      display: grid;
+      grid-template-columns: 10px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .invoice-chart-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .tooltip-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--text-light);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: help;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .tooltip-content {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: calc(100vw - 32px);
+      box-sizing: border-box;
+      background: var(--text);
+      color: var(--surface);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 400;
+      line-height: 1.4;
+      width: 240px;
+      white-space: normal;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      pointer-events: none;
+    }
+
+    .tooltip-content::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--text);
+    }
+
+    .tooltip-trigger:hover .tooltip-content,
+    .tooltip-trigger:focus .tooltip-content,
+    .tooltip-trigger.active .tooltip-content {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .history-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .history-count {margin-left: auto; align-self: center; color: var(--text-muted); font-size: 0.85rem; white-space: nowrap;}
+
+    .history-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .history-filters input, .history-filters select { flex: 1; min-width: 140px; }
+
+    .history-list {
+      display: grid;
+      gap: 10px;
+      max-height: 600px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .history-item {
+      position: relative;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 12px 32px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .history-item:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow);
+      transform: translateY(-1px);
+    }
+
+    .history-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .history-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .history-delete-btn {
+      position: absolute;
+      right: 12px;
+      bottom: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 2px 4px;
+      font-size: 0.9rem;
+      line-height: 1;
+      border-radius: 4px;
+    }
+
+    .history-delete-btn:hover {
+      color: var(--error);
+      background: var(--surface);
+    }
+
+    .history-item-type {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .history-item-time { font-size: 0.75rem; color: var(--text-muted); }
+    .history-item-summary { font-size: 0.875rem; color: var(--text); margin-bottom: 4px; }
+
+    .history-item-result {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .trash-item {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+    }
+
+    .trash-item-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .history-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .history-empty-icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.5; }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--text-muted);
+      opacity: 0.4;
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: calc(100vw - 40px);
+    }
+
+    .toast {
+      background: var(--text);
+      color: var(--surface);
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideIn 0.3s ease;
+      max-width: 320px;
+    }
+
+    .toast.success { background: var(--success); color: white; }
+    .toast.error { background: var(--error); color: white; }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+
+    .toast.hiding { animation: slideOut 0.3s ease forwards; }
+
+    .mascot {
+      display: var(--cat-display);
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 60px;
+      height: 60px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 50;
+    }
+
+    .mascot.show { opacity: 1; transform: translateY(0); animation: bounce 0.6s ease; }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-top: 20px;
+    }
+
+    /* Invoice table */
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+    }
+
+    .invoice-table th,
+    .invoice-table td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .invoice-table th {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* Invoice only: fixed column layout */
+    .invoice-table:not(.offers-table) {
+      table-layout: fixed;
+      min-width: 760px;
+    }
+
+    .invoice-table:not(.offers-table) th,
+    .invoice-table:not(.offers-table) td {
+      padding-left: 5px;
+      padding-right: 5px;
+    }
+
+    .invoice-table:not(.offers-table) input {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+      padding: 6px 4px;
+      font-size: 0.85rem;
+    }
+
+    .invoice-table:not(.offers-table) td:nth-child(5) {
+      overflow-wrap: anywhere;
+      font-size: 0.85rem;
+    }
+
+    .invoice-table:not(.offers-table) td:nth-child(6) {
+      text-align: center;
+    }
+
+    .invoice-table:not(.offers-table) td:nth-child(6) .btn {
+      padding: 5px 8px;
+    }
+
+
+    @media (max-width: 640px) {
+      .container { padding: 12px; }
+      .header { padding: 16px; flex-direction: column; align-items: flex-start; }
+      .header h1 { font-size: 1.4rem; }
+      .theme-toggle { align-self: flex-end; }
+      .tabs { gap: 4px; }
+      .tab-btn { padding: 8px 14px; font-size: 0.85rem; }
+      .card { padding: 16px; }
+      .form-row { grid-template-columns: 1fr; }
+      .result-value { font-size: 1.25rem; }
+      .mascot { width: 48px; height: 48px; bottom: 12px; left: 12px; }
+      .toast-container { bottom: 12px; right: 12px; left: 12px; }
+      .toast { max-width: 100%; }
+    }
+
+    @media (max-width: 640px) {
+      input, select, textarea { font-size: 16px !important; }
+    }
+
+    @media (min-width: 768px) {
+      .tabs {
+        flex-wrap: wrap;
+        overflow-x: visible;
+      }
+    }
+
+    .scroll-top-btn {
+      position: fixed;
+      right: 20px;
+      bottom: 90px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: var(--shadow-hover);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.2s ease;
+      z-index: 99;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .scroll-top-btn.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .scroll-top-btn:hover {
+      transform: translateY(-3px);
+      background: var(--primary-hover);
+    }
+
+    @media print {
+      .scroll-top-btn { display: none !important; }
+    }
+
+    @media print {
+      .tabs,
+      .theme-toggle,
+      .btn,
+      .mascot,
+      .logo-cat,
+      .toast-container,
+      .tooltip-trigger,
+      .history-controls,
+      .history-filters,
+      .result-actions {
+        display: none !important;
+      }
+
+      body {
+        background: white !important;
+        color: black !important;
+      }
+
+      .header {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+        border-bottom: 2px solid black;
+      }
+
+      .card {
+        box-shadow: none !important;
+        border: 1px solid #ccc;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .result {
+        border-left-color: black !important;
+        background: #f9f9f9 !important;
+      }
+
+      .result-status {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        font-size: 0.9rem;
+        line-height: 1;
+        pointer-events: none;
+      }
+
+      .result-value {
+        color: black !important;
+      }
+
+      .result-row-value.positive,
+      .result-row-value.negative {
+        color: black !important;
+      }
+
+      .tab-content.active::before {
+        content: attr(id);
+        display: block;
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-transform: capitalize;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ccc;
+      }
+
+      .offers-table-wrap {
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      .offers-table {
+        min-width: 440px;
+      }
+
+      .offers-table input {
+        min-width: 0;
+      }
+
+      @page {
+        margin: 2cm;
+        @bottom-center {
+          content: "Page " counter(page) " of " counter(pages);
+        }
+      }
+
+      .history-list {
+        max-height: none !important;
+        overflow: visible !important;
+      }
+
+      .history-item {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .tooltip-content {
+        position: fixed;
+        width: min(240px, calc(100vw - 32px));
+        left: 16px;
+        bottom: auto;
+        transform: none;
+      }
+
+      .tooltip-content::after {
+        left: var(--tooltip-arrow-left, 50%);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header class="header">
+    <div class="header-title">
+      <svg class="logo-cat" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="Cat mascot">
+        <path d="M20,35 L28,12 L40,30 Z" fill="white" opacity="0.95"/>
+        <path d="M80,35 L72,12 L60,30 Z" fill="white" opacity="0.95"/>
+        <path d="M25,32 L30,18 L37,30 Z" fill="#fbbf24"/>
+        <path d="M75,32 L70,18 L63,30 Z" fill="#fbbf24"/>
+        <circle cx="50" cy="55" r="32" fill="white"/>
+        <ellipse cx="38" cy="52" rx="4" ry="5" fill="#1f2937"/>
+        <ellipse cx="62" cy="52" rx="4" ry="5" fill="#1f2937"/>
+        <circle cx="39" cy="50" r="1.2" fill="white"/>
+        <circle cx="63" cy="50" r="1.2" fill="white"/>
+        <path d="M47,62 L53,62 L50,66 Z" fill="#f97316"/>
+        <path d="M50,66 Q45,72 40,70" stroke="#1f2937" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M50,66 Q55,72 60,70" stroke="#1f2937" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <line x1="20" y1="62" x2="35" y2="64" stroke="#1f2937" stroke-width="1" stroke-linecap="round"/>
+        <line x1="20" y1="68" x2="35" y2="68" stroke="#1f2937" stroke-width="1" stroke-linecap="round"/>
+        <line x1="80" y1="62" x2="65" y2="64" stroke="#1f2937" stroke-width="1" stroke-linecap="round"/>
+        <line x1="80" y1="68" x2="65" y2="68" stroke="#1f2937" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+
+      <svg class="logo-classic" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="Calculator icon">
+        <rect x="20" y="15" width="60" height="75" rx="6" fill="white"/>
+        <rect x="26" y="22" width="48" height="14" rx="2" fill="#1e40af"/>
+        <g fill="#1e40af">
+          <rect x="28" y="44" width="10" height="10" rx="2"/>
+          <rect x="45" y="44" width="10" height="10" rx="2"/>
+          <rect x="62" y="44" width="10" height="10" rx="2"/>
+          <rect x="28" y="58" width="10" height="10" rx="2"/>
+          <rect x="45" y="58" width="10" height="10" rx="2"/>
+          <rect x="62" y="58" width="10" height="10" rx="2"/>
+          <rect x="28" y="72" width="10" height="10" rx="2"/>
+          <rect x="45" y="72" width="27" height="10" rx="2"/>
+        </g>
+      </svg>
+
+      <div>
+        <h1>CATculator</h1>
+        <div class="header-subtitle" id="headerSubtitle">Cost And Tax Calculator</div>
+      </div>
+    </div>
+
+    <div class="theme-toggle" id="themeToggle" role="button" tabindex="0" aria-label="Toggle classic mode">
+      <span id="themeLabel">Classic theme</span>
+      <div class="toggle-switch"></div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="percent" role="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="19" y1="5" x2="5" y2="19"/>
+        <circle cx="6.5" cy="6.5" r="2.5"/>
+        <circle cx="17.5" cy="17.5" r="2.5"/>
+      </svg>
+      Percent
+    </button>
+    <button class="tab-btn" data-tab="margin" role="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="1" x2="12" y2="23"/>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+      Margin
+    </button>
+    <button class="tab-btn" data-tab="brandkpi" role="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="6"/>
+        <circle cx="12" cy="12" r="2"/>
+      </svg>
+      Brand KPI
+    </button>
+    <button class="tab-btn" data-tab="netprofit" role="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2">
+        <path d="M3 3v18h18"/>
+        <path d="m7 14 4-4 4 4 6-7"/>
+      </svg>
+      Net Profit
+    </button>
+    <button class="tab-btn" data-tab="vat" role="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <path d="M9 9h6M9 13h6M9 17h3"/>
+      </svg>
+      VAT
+    </button>
+    <button class="tab-btn" data-tab="discount" role="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="9" cy="9" r="2"/>
+        <circle cx="15" cy="15" r="2"/>
+        <line x1="7" y1="17" x2="17" y2="7"/>
+      </svg>
+      Discount
+    </button>
+    <button class="tab-btn" data-tab="offers" role="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 3h18v4H3zM3 11h18v4H3zM3 19h18v2H3z"/>
+      </svg>
+      Offers
+    </button>
+    <button class="tab-btn" data-tab="credit" role="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="5" width="20" height="14" rx="2"/>
+        <line x1="2" y1="10" x2="22" y2="10"/>
+      </svg>
+      Credit
+    </button>
+    <button class="tab-btn" data-tab="salary" role="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="7" width="20" height="14" rx="2"/>
+        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+      </svg>
+      Salary
+    </button>
+    <button class="tab-btn" data-tab="invoice" role="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      Invoice
+    </button>
+    <button class="tab-btn" data-tab="date" role="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      Date
+    </button>
+    <button class="tab-btn" data-tab="history" role="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      History
+    </button>
+  </nav>
+
+  <!-- PERCENT TAB -->
+  <div class="tab-content active" id="percent">
+    <div class="card">
+      <div class="card-title">
+        Percent of a number
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Calculates X percent of Y. Example: 15% of 200 = 30.</span></span>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Percent (%)</label><input type="number" id="pof-percent" step="any" placeholder="15"></div>
+        <div class="form-group"><label>Of number</label><input type="number" id="pof-number" step="any" placeholder="200"></div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.percentOf()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('pof-percent', 'pof-number'); Utils.hideResult('pof-result')">Clear</button>
+      </div>
+      <div class="result" id="pof-result" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Percentage change
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Calculates percentage increase or decrease between two values. Formula: ((new - old) / old) × 100.</span></span>
+      </div>
+      <div class="form-row form-row-swap">
+        <div class="form-group"><label>From value</label><input type="number" id="pchg-from" step="any" placeholder="100"></div>
+        <button class="swap-btn" onclick="Utils.swap('pchg-from', 'pchg-to')" title="Swap values" aria-label="Swap values">⇄</button>
+        <div class="form-group"><label>To value</label><input type="number" id="pchg-to" step="any" placeholder="150"></div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.percentChange()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('pchg-from', 'pchg-to'); Utils.hideResult('pchg-result')">Clear</button>
+      </div>
+      <div class="result" id="pchg-result" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Increase / decrease by percent
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Adds or subtracts a percentage from a number. Example: 200 + 15% = 230.</span></span>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Number</label><input type="number" id="pinc-number" step="any" placeholder="200"></div>
+        <div class="form-group"><label>Percent (%)</label><input type="number" id="pinc-percent" step="any" placeholder="15"></div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.percentIncrease()">Increase</button>
+        <button class="btn btn-secondary" onclick="Calculators.percentDecrease()">Decrease</button>
+      </div>
+      <div style="margin-top:8px;">
+        <button class="btn btn-secondary btn-small" onclick="Utils.clearInputs('pinc-number', 'pinc-percent'); Utils.hideResult('pinc-result')">Clear</button>
+      </div>
+      <div class="result" id="pinc-result" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        What percent is X of Y
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Calculates what percentage one number is of another. Formula: (X / Y) × 100.</span></span>
+      </div>
+      <div class="form-row form-row-swap">
+        <div class="form-group"><label>Value X</label><input type="number" id="pxofy-x" step="any" placeholder="30"></div>
+        <button class="swap-btn" onclick="Utils.swap('pxofy-x', 'pxofy-y')" title="Swap values" aria-label="Swap values">⇄</button>
+        <div class="form-group"><label>Of value Y</label><input type="number" id="pxofy-y" step="any" placeholder="200"></div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.whatPercent()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('pxofy-x', 'pxofy-y'); Utils.hideResult('pxofy-result')">Clear</button>
+      </div>
+      <div class="result" id="pxofy-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- MARGIN TAB -->
+  <div class="tab-content" id="margin">
+    <div class="card">
+      <div class="card-title">
+        Margin & Markup
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content"><b>Margin</b> = Profit / Selling Price × 100%.<br><b>Markup</b> = Profit / Cost × 100%.<br>Example: Cost 100, Price 150 → Margin 33.33%, Markup 50%.</span></span>
+      </div>
+      <div class="card-description">Calculate margin, markup and profit from cost and selling price.</div>
+      <div class="form-row form-row-swap">
+        <div class="form-group"><label>Cost</label><input type="number" id="mrg-cost" step="any" placeholder="100"></div>
+        <button class="swap-btn" onclick="Utils.swap('mrg-cost', 'mrg-price')" title="Swap values" aria-label="Swap values">⇄</button>
+        <div class="form-group"><label>Selling price</label><input type="number" id="mrg-price" step="any" placeholder="150"></div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.margin()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('mrg-cost', 'mrg-price'); Utils.hideResult('mrg-result')">Clear</button>
+      </div>
+      <div class="result" id="mrg-result" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Price from margin
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Calculates selling price from cost and desired margin. Formula: Price = Cost / (1 - Margin/100).</span></span>
+      </div>
+      <div class="card-description">Find the selling price needed to achieve a target margin.</div>
+      <div class="form-row">
+        <div class="form-group"><label>Cost</label><input type="number" id="mfp-cost" step="any" placeholder="100"></div>
+        <div class="form-group"><label>Target margin (%)</label><input type="number" id="mfp-margin" step="any" placeholder="30"></div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.priceFromMargin()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('mfp-cost', 'mfp-margin'); Utils.hideResult('mfp-result')">Clear</button>
+      </div>
+      <div class="result" id="mfp-result" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Markup ↔ Margin converter
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Convert between markup and margin. Markup is based on cost, margin is based on selling price.</span></span>
+      </div>
+      <div class="card-description">Convert between markup and margin.</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Markup (%)</label>
+          <input type="number" id="mc-markup" step="any" placeholder="50" oninput="Calculators.markupToMargin()">
+        </div>
+        <div class="form-group">
+          <label>Margin (%)</label>
+          <input type="number" id="mc-margin" step="any" placeholder="33.33" oninput="Calculators.marginToMarkup()">
+        </div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-secondary"
+                onclick="Utils.clearInputs('mc-markup', 'mc-margin')">Clear</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Break-even point
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Calculates how many units you need to sell to cover all costs. Formula: Fixed Costs / (Price - Variable Cost).</span></span>
+      </div>
+      <div class="card-description">How many units to sell to cover all costs?</div>
+      <div class="form-group"><label>Fixed costs</label><input type="number" id="be-fixed" step="any" placeholder="100000"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Price per unit</label><input type="number" id="be-price" step="any" placeholder="500"></div>
+        <div class="form-group"><label>Variable cost per unit</label><input type="number" id="be-variable" step="any" placeholder="300"></div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.breakEven()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('be-fixed', 'be-price', 'be-variable'); Utils.hideResult('be-result')">Clear</button>
+      </div>
+      <div class="result" id="be-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- BRAND KPI TAB -->
+  <div class="tab-content" id="brandkpi">
+    <div class="card">
+      <div class="card-title">
+        Brand performance
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Compare plan vs actual sales or KPI. Shows achievement percentage and gap.</span></span>
+      </div>
+      <div class="form-row form-row-swap">
+        <div class="form-group"><label>Plan</label><input type="number" id="bp-plan" step="any" placeholder="1000000"></div>
+        <button class="swap-btn" onclick="Utils.swap('bp-plan', 'bp-fact')" title="Swap values" aria-label="Swap values">⇄</button>
+        <div class="form-group"><label>Fact</label><input type="number" id="bp-fact" step="any" placeholder="850000"></div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.brandPerformance()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('bp-plan', 'bp-fact'); Utils.hideResult('bp-result')">Clear</button>
+      </div>
+      <div class="result" id="bp-result" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Marketing ROI
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Estimates the return on marketing investment using revenue and profit margin.<br>
+          Marketing ROI = (Gross Profit − Campaign Budget) / Campaign Budget × 100%.<br>
+          Other business expenses are not included.</span>
+        </span>
+      </div>
+      <div class="form-group"><label>Campaign budget</label><input type="number" id="mroi-budget" step="any" placeholder="500000"></div>
+      <div class="form-group"><label>Revenue from campaign</label><input type="number" id="mroi-revenue" step="any" placeholder="2500000"></div>
+      <div class="form-group"><label>Profit margin (%)</label><input type="number" id="mroi-margin" step="any" placeholder="30"></div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.marketingROI()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('mroi-budget', 'mroi-revenue', 'mroi-margin'); Utils.hideResult('mroi-result')">Clear</button>
+      </div>
+      <div class="result" id="mroi-result" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Funnel conversion
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Calculate conversion rates between funnel stages. Enter at least 2 stages.</span></span>
+      </div>
+      <div class="card-description">Track conversion through up to 4 stages of your funnel.</div>
+      <div class="form-group"><label>Stage 1 (top of funnel)</label><input type="number" id="fn-s1" step="any" placeholder="100000"></div>
+      <div class="form-group"><label>Stage 2</label><input type="number" id="fn-s2" step="any" placeholder="10000"></div>
+      <div class="form-group"><label>Stage 3</label><input type="number" id="fn-s3" step="any" placeholder="1000"></div>
+      <div class="form-group"><label>Stage 4 (bottom)</label><input type="number" id="fn-s4" step="any" placeholder="100"></div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.funnelConversion()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('fn-s1', 'fn-s2', 'fn-s3', 'fn-s4'); Utils.hideResult('fn-result')">Clear</button>
+      </div>
+      <div class="result" id="fn-result" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Price positioning
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Calculate your average price and compare with competitor. Price index &gt; 1 means you are more expensive.</span></span>
+      </div>
+      <div class="form-group"><label>Your revenue</label><input type="number" id="pp-revenue" step="any" placeholder="5000000"></div>
+      <div class="form-group"><label>Units sold</label><input type="number" id="pp-units" step="any" placeholder="10000"></div>
+      <div class="form-group"><label>Competitor average price (optional)</label><input type="number" id="pp-comp" step="any" placeholder="450"></div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.pricePositioning()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('pp-revenue', 'pp-units', 'pp-comp'); Utils.hideResult('pp-result')">Clear</button>
+      </div>
+      <div class="result" id="pp-result" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Retail Price Builder
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Calculate retail price from cost through all markups: cost + logistics + distributor markup + retailer markup + VAT.</span></span>
+      </div>
+      <div class="card-description">Build shelf price step by step from production cost.</div>
+      <div class="form-row">
+        <div class="form-group"><label>Production cost</label><input type="number" id="cp-cost" step="any" placeholder="100"></div>
+        <div class="form-group"><label>Logistics cost</label><input type="number" id="cp-logistics" step="any" placeholder="10"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Distributor markup (%)</label><input type="number" id="cp-dist" step="any" placeholder="15"></div>
+        <div class="form-group"><label>Retailer markup (%)</label><input type="number" id="cp-retail" step="any" placeholder="25"></div>
+      </div>
+      <div class="form-group"><label>VAT (%)</label><input type="number" id="cp-vat" step="any" placeholder="20"></div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.cascadingPrice()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('cp-cost', 'cp-logistics', 'cp-dist', 'cp-retail', 'cp-vat'); Utils.hideResult('cp-result')">Clear</button>
+      </div>
+      <div class="result" id="cp-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- NET PROFIT TAB -->
+  <div class="tab-content" id="netprofit">
+    <div class="card">
+      <div class="card-title">
+        Net Profit Calculator
+        <span class="tooltip-trigger" tabindex="0">
+        ?
+        <span class="tooltip-content">
+          Calculates business net profit after operating expenses,
+          other income and expenses, interest and estimated income tax.
+          Tax is applied only when profit before tax is positive.
+        </span>
+      </span>
+      </div>
+
+      <div class="card-description">
+        Calculate gross profit, operating profit and net profit.
+      </div>
+
+      <div class="form-group">
+        <label>Revenue</label>
+        <input type="number" id="np-revenue" step="any" min="0"
+               placeholder="2500000">
+      </div>
+
+      <div class="form-group">
+        <label>Cost of goods sold (COGS)</label>
+        <input type="number" id="np-cogs" step="any" min="0"
+               placeholder="1750000">
+      </div>
+
+      <div class="form-group">
+        <label>Operating expenses</label>
+        <input type="number" id="np-operating" step="any" min="0"
+               placeholder="200000">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Other income</label>
+          <input type="number" id="np-other-income" step="any" min="0"
+                 placeholder="0">
+        </div>
+
+        <div class="form-group">
+          <label>Other expenses</label>
+          <input type="number" id="np-other-expenses" step="any" min="0"
+                 placeholder="0">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Interest expense</label>
+          <input type="number" id="np-interest" step="any" min="0"
+                 placeholder="0">
+        </div>
+
+        <div class="form-group">
+          <label>Income tax rate (%)</label>
+          <input type="number" id="np-tax" step="any" min="0" max="100"
+                 placeholder="12">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <button class="btn btn-primary"
+                onclick="Calculators.netProfit()">
+          Calculate
+        </button>
+
+        <button class="btn btn-secondary"
+                onclick="Utils.clearInputs(
+                'np-revenue',
+                'np-cogs',
+                'np-operating',
+                'np-other-income',
+                'np-other-expenses',
+                'np-interest',
+                'np-tax'
+              ); Utils.hideResult('np-result')">
+          Clear
+        </button>
+      </div>
+
+      <div class="result" id="np-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- VAT TAB -->
+  <div class="tab-content" id="vat">
+    <div class="card">
+      <div class="card-title">
+        VAT calculator
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content"><b>Add VAT</b>: net amount + VAT on top.<br><b>Extract VAT</b>: remove VAT from gross amount.<br>Formula (extract): VAT = Gross - Gross / (1 + rate/100).</span></span>
+      </div>
+      <div class="form-group"><label>Amount</label><input type="number" id="vat-amount" step="any" placeholder="1000"></div>
+      <div class="form-group">
+        <label>VAT rate (%)</label>
+        <select id="vat-rate">
+          <option value="20">20%</option>
+          <option value="10">10%</option>
+          <option value="5">5%</option>
+          <option value="0">0%</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="form-group" id="vat-custom-group" style="display:none;">
+        <label>Custom rate (%)</label>
+        <input type="number" id="vat-custom" step="any" placeholder="20">
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.vatAdd()">Add VAT</button>
+        <button class="btn btn-secondary" onclick="Calculators.vatExtract()">Extract VAT</button>
+      </div>
+      <div style="margin-top:8px;">
+        <button class="btn btn-secondary btn-small" onclick="Utils.clearInputs('vat-amount', 'vat-custom'); Utils.hideResult('vat-result')">Clear</button>
+      </div>
+      <div class="result" id="vat-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- DISCOUNT TAB -->
+  <div class="tab-content" id="discount">
+    <div class="card">
+      <div class="card-title">
+        Discount calculator
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Calculates final price after discount. Formula: Final = Original × (1 - discount/100).</span></span>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Original price</label><input type="number" id="dsc-original" step="any" placeholder="1000"></div>
+        <div class="form-group"><label>Discount (%)</label><input type="number" id="dsc-percent" step="any" placeholder="20"></div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.discount()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('dsc-original', 'dsc-percent'); Utils.hideResult('dsc-result')">Clear</button>
+      </div>
+      <div class="result" id="dsc-result" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Reverse discount
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Find original price from discounted price. Formula: Original = Discounted / (1 - discount/100).</span></span>
+      </div>
+      <div class="card-description">Find the original price when you know the price after discount.</div>
+      <div class="form-row">
+        <div class="form-group"><label>Price after discount</label><input type="number" id="rds-discounted" step="any" placeholder="800"></div>
+        <div class="form-group"><label>Discount (%)</label><input type="number" id="rds-percent" step="any" placeholder="20"></div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.reverseDiscount()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('rds-discounted', 'rds-percent'); Utils.hideResult('rds-result')">Clear</button>
+      </div>
+      <div class="result" id="rds-result" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Chain discount
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Calculate final price after multiple sequential discounts. Example: 20% then 10% then 5%.</span></span>
+      </div>
+      <div class="card-description">Apply multiple discounts in sequence.</div>
+      <div class="form-group"><label>Original price</label><input type="number" id="cd-original" step="any" placeholder="1000"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Discount 1 (%)</label><input type="number" id="cd-d1" step="any" placeholder="20"></div>
+        <div class="form-group"><label>Discount 2 (%)</label><input type="number" id="cd-d2" step="any" placeholder="10"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Discount 3 (%)</label><input type="number" id="cd-d3" step="any" placeholder="5"></div>
+        <div class="form-group"><label>Discount 4 (%)</label><input type="number" id="cd-d4" step="any" placeholder=""></div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.chainDiscount()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('cd-original', 'cd-d1', 'cd-d2', 'cd-d3', 'cd-d4'); Utils.hideResult('cd-result')">Clear</button>
+      </div>
+      <div class="result" id="cd-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- OFFERS TAB -->
+  <div class="tab-content" id="offers">
+    <div class="card">
+      <div class="card-title">
+        Compare offers
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Compare multiple offers by price per unit. Useful for choosing the best deal between different quantities and prices.</span></span>
+      </div>
+      <div class="card-description">Which offer is better? Compare price per unit.</div>
+      <div class="form-group"><label>Unit name (optional)</label><input type="text" id="off-unit" placeholder="pcs, kg, l, m..."></div>
+
+      <div class="offers-table-wrap">
+        <table class="invoice-table offers-table">
+          <thead>
+          <tr>
+            <th>Offer</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody id="offers-container">
+          <tr>
+            <td class="offer-name">Offer A</td>
+            <td>
+              <input type="number" id="off-a-price"
+                     step="any" placeholder="100"
+                     aria-label="Offer A price">
+            </td>
+            <td>
+              <input type="number" id="off-a-qty"
+                     step="any" placeholder="10"
+                     aria-label="Offer A quantity">
+            </td>
+            <td>
+
+            </td>
+          </tr>
+          <tr>
+            <td class="offer-name">Offer B</td>
+            <td>
+              <input type="number" id="off-b-price"
+                     step="any" placeholder="250"
+                     aria-label="Offer B price">
+            </td>
+            <td>
+              <input type="number" id="off-b-qty"
+                     step="any" placeholder="30"
+                     aria-label="Offer B quantity">
+            </td>
+            <td>
+
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <button class="btn btn-secondary btn-small" id="add-offer-btn" onclick="Offers.addOffer()" style="margin-bottom:12px;">
+        + Add offer
+      </button>
+
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.compareOffers()">Compare</button>
+        <button class="btn btn-secondary" onclick="Offers.reset(); Utils.hideResult('off-result')">Clear</button>
+      </div>
+      <div class="result" id="off-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- CREDIT TAB -->
+  <div class="tab-content" id="credit">
+    <div class="card">
+      <div class="card-title">
+        Loan / installment calculator
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content"><b>Annuity</b>: fixed monthly payment.<br><b>Differentiated</b>: decreasing payments.<br>This is an estimate — does not include fees, insurance, or bank commissions.</span></span>
+      </div>
+      <div class="card-description">Estimate monthly payments and total overpayment.</div>
+      <div class="form-group"><label>Loan amount</label><input type="number" id="crd-amount" step="any" placeholder="100000"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Annual rate (%)</label><input type="number" id="crd-rate" step="any" placeholder="15"></div>
+        <div class="form-group"><label>Term (months)</label><input type="number" id="crd-months" step="any" placeholder="24"></div>
+      </div>
+      <div class="form-group">
+        <label>Payment type</label>
+        <select id="crd-type">
+          <option value="annuity">Annuity (fixed)</option>
+          <option value="diff">Differentiated (decreasing)</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.credit()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('crd-amount', 'crd-rate', 'crd-months'); Utils.hideResult('crd-result')">Clear</button>
+      </div>
+      <div class="result" id="crd-result" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Early repayment
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Calculate savings from early loan repayment. Estimates interest saved by paying off loan before term ends.</span></span>
+      </div>
+      <div class="card-description">How much will you save by repaying early?</div>
+      <div class="form-group"><label>Remaining loan amount</label><input type="number" id="er-amount" step="any" placeholder="50000"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Annual rate (%)</label><input type="number" id="er-rate" step="any" placeholder="15"></div>
+        <div class="form-group"><label>Remaining months</label><input type="number" id="er-months" step="any" placeholder="12"></div>
+      </div>
+      <div class="form-group"><label>Repay after (months)</label><input type="number" id="er-repay" step="any" placeholder="6"></div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.earlyRepayment()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('er-amount', 'er-rate', 'er-months', 'er-repay'); Utils.hideResult('er-result')">Clear</button>
+      </div>
+      <div class="result" id="er-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- SALARY TAB -->
+  <div class="tab-content" id="salary">
+    <div class="card">
+      <div class="card-title">
+        Salary calculator (Gross ↔ Net)
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Calculate take-home pay from gross salary or vice versa. Income tax is deducted from salary. Social contributions are calculated as an additional employer cost and are not deducted from net salary.</span></span>
+      </div>
+      <div class="card-description">Calculate net salary from gross or gross from net.</div>
+      <div class="form-group"><label>Amount</label><input type="number" id="sal-amount" step="any" placeholder="100000"></div>
+      <div class="form-group">
+        <label>Amount type</label>
+        <select id="sal-type">
+          <option value="gross">Gross (before tax)</option>
+          <option value="net">Net (after tax)</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Income tax (%)</label><input type="number" id="sal-tax" step="any" placeholder="13"></div>
+        <div class="form-group"><label>Social contributions (%)</label><input type="number" id="sal-social" step="any" placeholder="30"></div>
+      </div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.salary()">Calculate</button>
+        <button class="btn btn-secondary" onclick="Utils.clearInputs('sal-amount'); Utils.hideResult('sal-result')">Clear</button>
+      </div>
+      <div class="result" id="sal-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- INVOICE TAB -->
+  <div class="tab-content" id="invoice">
+    <div class="card">
+      <div class="card-title">
+        Invoice totals
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Calculate invoice totals with multiple line items and VAT.</span></span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="invoice-table">
+          <colgroup>
+            <col style="width:27%;">
+            <col style="width:12%;">
+            <col style="width:15%;">
+            <col style="width:14%;">
+            <col style="width:15%;">
+            <col style="width:8%;">
+          </colgroup>
+          <thead>
+          <tr>
+            <th>Item name</th>
+            <th>Qty</th>
+            <th>Unit price</th>
+            <th>Adjustment (%)</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody id="invoice-items">
+          <tr>
+            <td><input type="text" placeholder="Item name" aria-label="Invoice item name" oninput="Invoice.autoCalc()"></td>
+            <td><input type="number" step="any" placeholder="1" aria-label="Invoice quantity" oninput="Invoice.autoCalc()"></td>
+            <td><input type="number" step="any" placeholder="100" aria-label="Invoice price" oninput="Invoice.autoCalc()"></td>
+            <td><input type="number" step="any" min="-100" placeholder="0" aria-label="Invoice adjustment percentage" oninput="Invoice.autoCalc()"></td>
+            <td class="numbers">0.00</td>
+            <td></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="btn btn-secondary btn-small" onclick="Invoice.addRow()" style="margin-bottom:12px;">+ Add item</button>
+      <div class="form-row" style="margin-bottom:12px;">
+        <button class="btn btn-primary btn-small" onclick="Invoice.calculate()">Calculate</button>
+        <button class="btn btn-secondary btn-small" onclick="Invoice.clear()">Clear</button>
+      </div>
+
+      <div class="form-group">
+        <label>VAT rate (%)</label>
+        <select id="inv-vat" onchange="Invoice.autoCalc()">
+          <option value="20">20%</option>
+          <option value="10">10%</option>
+          <option value="5">5%</option>
+          <option value="0">0%</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="form-group" id="inv-custom-group" style="display:none;">
+        <label>Custom VAT rate (%)</label>
+        <input type="number" id="inv-custom" step="any" placeholder="20" oninput="Invoice.autoCalc()">
+      </div>
+
+      <div class="result" id="inv-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- DATE TAB -->
+  <div class="tab-content" id="date">
+    <div class="card">
+      <div class="card-title">
+        Date calculator
+        <span class="tooltip-trigger" tabindex="0">?<span class="tooltip-content">Choose mode: calculate days between two dates, or add/subtract days from a start date.</span></span>
+      </div>
+      <div class="form-group">
+        <label>Mode</label>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer; margin-bottom:0;">
+            <input type="radio" id="dt-mode-between" name="dt-mode" value="between" checked onchange="DateCalc.switchMode()"> Days between dates
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer; margin-bottom:0;">
+            <input type="radio" name="dt-mode" value="add" onchange="DateCalc.switchMode()"> Add/subtract days
+          </label>
+        </div>
+      </div>
+      <div class="form-group"><label>Start date</label><input type="date" id="dt-start"></div>
+      <div class="form-group" id="dt-end-group"><label>End date</label><input type="date" id="dt-end"></div>
+      <div class="form-group" id="dt-days-group" style="display:none;"><label>Days to add (use negative to subtract)</label><input type="number" id="dt-days" step="1" placeholder="30"></div>
+      <div class="form-row">
+        <button class="btn btn-primary" onclick="Calculators.dateCalc()">Calculate</button>
+        <button class="btn btn-secondary" onclick="DateCalc.clear()">Clear</button>
+      </div>
+      <div class="result" id="dt-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="tab-content" id="history">
+    <div class="card">
+      <div class="card-title" id="history-title">
+        Calculation history
+      </div>
+
+      <div class="card-description" id="history-description">
+        Last 1000 calculations. Click any item to reopen it.
+      </div>
+
+      <div class="history-controls">
+        <div id="history-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-small"
+                  onclick="History.exportCSV()">
+            Export CSV
+          </button>
+
+          <button class="btn btn-secondary btn-small"
+                  onclick="History.exportJSON()">
+            Export JSON
+          </button>
+
+          <button class="btn btn-secondary btn-small"
+                  onclick="History.importJSON()">
+            Import JSON
+          </button>
+
+          <button class="btn btn-secondary btn-small"
+                  onclick="History.clear()">
+            Clear all
+          </button>
+        </div>
+        <button
+                class="btn btn-secondary btn-small"
+                id="history-toggle-btn"
+                type="button"
+                onclick="History.toggleTrash()"
+        >
+          🗑️ Recycle bin
+        </button>
+        <span id="history-count" class="history-count"></span>
+        <span id="trash-count" class="history-count" style="display:none;"></span>
+      </div>
+
+      <div id="history-view">
+        <div class="history-filters">
+          <input type="text" id="hist-search"
+                 placeholder="Search..."
+                 aria-label="Search calculation history"
+                 oninput="History.render()">
+
+          <select id="hist-filter"
+                  aria-label="Filter history by type"
+                  onchange="History.render()">
+            <option value="">All types</option>
+            <option value="percent">Percent</option>
+            <option value="margin">Margin</option>
+            <option value="brandkpi">Brand KPI</option>
+            <option value="netprofit">Net Profit</option>
+            <option value="vat">VAT</option>
+            <option value="discount">Discount</option>
+            <option value="offers">Offers</option>
+            <option value="credit">Credit</option>
+            <option value="salary">Salary</option>
+            <option value="date">Date</option>
+            <option value="invoice">Invoice</option>
+          </select>
+        </div>
+
+        <div class="history-list" id="history-list"></div>
+      </div>
+
+      <div id="history-trash" style="display:none;">
+        <div class="history-controls">
+          <button
+                  class="btn btn-secondary btn-small"
+                  type="button"
+                  onclick="History.emptyTrash()"
+          >
+            Empty Recycle Bin
+          </button>
+        </div>
+
+        <div class="history-list" id="trash-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    CATculator · Cost And Tax Calculator · All calculations are performed locally in your browser
+  </footer>
+</div>
+
+<svg class="mascot" id="mascot" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="50" cy="55" r="35" fill="#f97316"/>
+  <path d="M20,35 L28,10 L40,30 Z" fill="#f97316"/>
+  <path d="M80,35 L72,10 L60,30 Z" fill="#f97316"/>
+  <path d="M25,32 L30,18 L37,30 Z" fill="#fbbf24"/>
+  <path d="M75,32 L70,18 L63,30 Z" fill="#fbbf24"/>
+  <ellipse cx="38" cy="52" rx="4" ry="5" fill="#1f2937"/>
+  <ellipse cx="62" cy="52" rx="4" ry="5" fill="#1f2937"/>
+  <circle cx="39" cy="50" r="1.5" fill="white"/>
+  <circle cx="63" cy="50" r="1.5" fill="white"/>
+  <path d="M47,62 L53,62 L50,66 Z" fill="#1f2937"/>
+</svg>
+
+<div class="toast-container" id="toast-container"></div>
+
+<button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top:0, behavior:'smooth'})" aria-label="Scroll to top">↑</button>
+
+</body>
+<script>
+  const Utils = {
+    parseNumber(value) {
+      if (value === null || value === undefined || value === '') return NaN;
+      const str = String(value).trim().replace(/\s/g, '').replace(/,/g, '.');
+      return parseFloat(str);
+    },
+
+    round(value, decimals = 2) {
+      if (!isFinite(value)) return value;
+      const factor = Math.pow(10, decimals);
+      return Math.round(value * factor) / factor;
+    },
+
+    formatNumber(value, decimals = 2) {
+      if (!isFinite(value)) return '—';
+      const rounded = this.round(value, decimals);
+      const parts = rounded.toFixed(decimals).split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      return parts.join('.');
+    },
+
+    formatPercent(value, decimals = 2) { return this.formatNumber(value, decimals) + '%'; },
+    formatMoney(value, decimals = 2) { return this.formatNumber(value, decimals); },
+
+    getNum(id) {
+      const el = document.getElementById(id);
+      if (!el) return NaN;
+      return this.parseNumber(el.value);
+    },
+
+    getStr(id) {
+      const el = document.getElementById(id);
+      return el ? el.value.trim() : '';
+    },
+
+    showResult(id, html) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = html;
+      el.style.display = 'block';
+    },
+
+    setResultFailure(id, reason = '') {
+      const el = document.getElementById(id);
+
+      if (!el || el.style.display === 'none') return;
+
+      let status = el.querySelector('.result-alert');
+      if (!status) {
+        status = document.createElement('div');
+        status.className = 'result-alert';
+        el.prepend(status);
+      }
+
+      status.replaceChildren();
+
+      const title = document.createElement('div');
+      title.textContent = '⚠ Calculation failed';
+
+      status.append(title);
+
+      if (reason) {
+        const details = document.createElement('div');
+        details.className = 'result-alert-reason';
+        details.textContent = reason;
+        status.append(details);
+      }
+    },
+
+    validate(...values) { return values.every(v => isFinite(v)); },
+    escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    },
+
+    swap(id1, id2) {
+      const el1 = document.getElementById(id1);
+      const el2 = document.getElementById(id2);
+      if (!el1 || !el2) return;
+      const tmp = el1.value;
+      el1.value = el2.value;
+      el2.value = tmp;
+      const card = el1.closest('.card');
+      if (card) {
+        const btn = card.querySelector('.btn-primary');
+        if (btn && el1.value && el2.value) {
+          setTimeout(() => btn.click(), 50);
+        }
+      }
+    },
+
+    hideResult(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      AutoCalc.cancel(id);
+      el.style.display = 'none';
+      el.innerHTML = '';
+    },
+
+    clearInputs(...ids) {
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+    },
+  };
+
+  const Toast = {
+    show(message, type = 'info', duration = 2500) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('hiding');
+        setTimeout(() => toast.remove(), 300);
+      }, duration);
+    },
+    success(msg) { this.show(msg, 'success'); },
+    error(msg) {
+      if (AutoCalc.currentKey) {
+        Utils.setResultFailure(AutoCalc.currentKey, msg);
+        return;
+      }
+      this.show(msg, 'error');
+    },
+    info(msg) { this.show(msg, 'info'); }
+  };
+
+  const Clipboard = {
+    async copy(text) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          const copied = document.execCommand('copy');
+          document.body.removeChild(textarea);
+          if (!copied) {
+            throw new Error('Clipboard copy command failed');
+          }
+        }
+        Toast.success('Copied to clipboard');
+        return true;
+      } catch (err) {
+        Toast.error('Copy failed');
+        return false;
+      }
+    }
+  };
+
+  const Export = {
+    download(filename, content, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    },
+
+    csvEscape(value) {
+      const str = String(value ?? '');
+      if (/[",\n]/.test(str)) return '"' + str.replace(/"/g, '""') + '"';
+      return str;
+    },
+
+    toCSV(rows) { return '\uFEFF' + rows.map(row => row.map(cell => this.csvEscape(cell)).join(',')).join('\n'); },
+    downloadCSV(filename, rows) { this.download(filename, this.toCSV(rows), 'text/csv;charset=utf-8'); },
+    downloadJSON(filename, data) { this.download(filename, JSON.stringify(data, null, 2), 'application/json'); }
+  };
+
+  const Theme = {
+    STORAGE_KEY: 'catculator_theme',
+
+    setFavicon(theme) {
+      const catIcon = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+          <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 148">
+          <defs>
+            <linearGradient id="fur" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f7a34d"/>
+              <stop offset="1" stop-color="#e98232"/>
+            </linearGradient>
+            <linearGradient id="parchment" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fdf5e6"/>
+              <stop offset="1" stop-color="#f0e0c6"/>
+            </linearGradient>
+          </defs>
+
+          <path fill="url(#fur)" d="M24 20 C28 10 30 2 34 2 C38 2 42 10 44 20 H60 C64 10 66 2 70 2 C76 2 84 10 88 20 c2 8 7 16 11 26 4 10 6 20 8 31 2 13 3 26 2 38 -1 9 -4 16 -9 22 8 -2 14 -7 17 -13 3 -5 2 -10 -2 -15 -2 -3 -1 -6 2 -8 3 -1 6 1 8 5 6 10 4 20 -4 28 -7 8 -18 13 -31 14 H38 c-15 -1 -25 -8 -29 -21 -4 -12 -3 -29 1 -46 C14 59 18 36 24 20 Z"/>
+
+          <path fill="#d9772e" opacity=".55" d="M29 18 C31 10 33 5 35 5 C38 5 40 10 42 18 Z"/>
+          <path fill="#d9772e" opacity=".55" d="M66 18 C68 10 71 5 74 5 C77 5 80 10 82 18 Z"/>
+
+          <path fill="#ffd49b" opacity=".8" d="M33 6 L35 6 L33 12 L31 13 Z"/>
+          <path fill="#ffd49b" opacity=".8" d="M72 6 L74 6 L76 12 L74 13 Z"/>
+
+          <g stroke="#8a4d24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path fill="#fff8e9" d="M28 45 c0-5 3-8 8-8 s8 3 8 8 -3 9 -8 9 -8-4 -8-9 Z"/>
+            <path fill="#fff8e9" d="M65 45 c0-5 3-8 8-8 s8 3 8 8 -3 9 -8 9 -8-4 -8-9 Z"/>
+            <path fill="none" d="M44 44 c6-3 15-3 21 0 M28 43 l-5-2 m60 2 5-2"/>
+            <path fill="#6b3b20" stroke="none" d="M34 44 c1-2 3-2 4 0 v4 c-1 2-3 2-4 0 Z m37 0 c1-2 3-2 4 0 v4 c-1 2-3 2-4 0 Z"/>
+          </g>
+          <path fill="#b96b32" d="M52 54 c2-2 5-2 7 0 l-3 3 Z"/>
+          <path d="M55 57 c-2 3 -5 3 -7 1 m7-1 c2 3 5 3 7 1" fill="none" stroke="#8a4d24" stroke-width="1.3" stroke-linecap="round"/>
+
+          <g fill="none" stroke="#9b5a2b" stroke-width="1" stroke-linecap="round" opacity=".9">
+            <path d="M25 58 l-11-2 m12 5 l-10 2 m75-5 l11-2 m-12 5 l10 2"/>
+          </g>
+
+          <path fill="url(#parchment)" d="M25 69 h48 c5 0 8 3 8 7 v4 c0 4 -3 7 -8 7 H62 v6 c0 3 3 5 7 5 h13 c5 0 9 4 9 9 v20 c0 4 -3 7 -7 7 h-2 v8 c0 3 -2 5 -5 5 H35 c-5 0 -8 -3 -8 -8 V102 c0 -3 2 -5 5 -5 h4 c5 0 9 -3 9 -7 v-3 H27 c-5 0 -9 -3 -9 -8 v-2 c0 -5 3 -8 7 -8 Z"/>
+          <path fill="#fff" opacity=".45" d="M27 72 h45 c3 0 5 2 5 4 v2 H23 c0-4 1-6 4-6 Z"/>
+          <path fill="#e6d2b5" d="M79 109 c5 0 9 4 9 9 v10 c0 4 -3 7 -7 7 h-5 V114 c0 -3 1 -5 3 -5 Z"/>
+        </svg>
+        </svg>
+      `;
+
+      const classicIcon = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+          <rect x="20" y="15" width="60" height="75" rx="6" fill="white"/>
+          <rect x="26" y="22" width="48" height="14" rx="2" fill="#1e40af"/>
+          <g fill="#1e40af">
+            <rect x="28" y="44" width="10" height="10" rx="2"/>
+            <rect x="45" y="44" width="10" height="10" rx="2"/>
+            <rect x="62" y="44" width="10" height="10" rx="2"/>
+            <rect x="28" y="58" width="10" height="10" rx="2"/>
+            <rect x="45" y="58" width="10" height="10" rx="2"/>
+            <rect x="62" y="58" width="10" height="10" rx="2"/>
+            <rect x="28" y="72" width="10" height="10" rx="2"/>
+            <rect x="45" y="72" width="27" height="10" rx="2"/>
+          </g>
+        </svg>
+      `;
+
+      const svg = theme === 'cat' ? catIcon : classicIcon;
+      document.getElementById('favicon').href =
+        'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    },
+
+    init() {
+      const saved = localStorage.getItem(this.STORAGE_KEY) || 'cat';
+      this.apply(saved);
+      const toggle = document.getElementById('themeToggle');
+      toggle.addEventListener('click', () => this.toggle());
+      toggle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.toggle(); }
+      });
+    },
+    apply(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem(this.STORAGE_KEY, theme);
+      this.setFavicon(theme);
+    },
+    toggle() {
+      const current = document.documentElement.getAttribute('data-theme');
+      this.apply(current === 'cat' ? 'classic' : 'cat');
+    },
+    current() { return document.documentElement.getAttribute('data-theme'); }
+  };
+
+  const Tabs = {
+    STORAGE_KEY: 'catculator_tab',
+    SCROLL_KEY: 'catculator_scroll',
+
+    init() {
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach(btn => btn.addEventListener('click', () => this.activate(btn.dataset.tab)));
+
+      // Save scroll position with debounce (separate for each tab)
+      let scrollTimeout;
+      window.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          const activeTab = document.querySelector('.tab-content.active');
+          if (activeTab) {
+            localStorage.setItem(`${this.SCROLL_KEY}_${activeTab.id}`, window.scrollY);
+          }
+        }, 0);
+      });
+
+      const saved = localStorage.getItem(this.STORAGE_KEY);
+      const initialTab = saved &&
+        document.getElementById(saved)?.classList.contains('tab-content')
+          ? saved
+          : 'percent';
+
+      this.activate(initialTab);
+    },
+
+    activate(tabId) {
+      const target = document.getElementById(tabId);
+      if (!target || !target.classList.contains('tab-content')) {
+        console.warn('Unknown tab:', tabId);
+        return;
+      }
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        const active = btn.dataset.tab === tabId;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-selected', String(active));
+        btn.setAttribute('aria-controls', btn.dataset.tab);
+        btn.setAttribute('tabindex', active ? '0' : '-1');
+      });
+
+      document.querySelectorAll('.tab-content').forEach(content => {
+        const active = content.id === tabId;
+        content.classList.toggle('active', active);
+        content.setAttribute('role', 'tabpanel');
+        const button = document.querySelector(
+          `.tab-btn[data-tab="${content.id}"]`
+        );
+        if (button) {
+          button.id = `tab-${content.id}`;
+          content.setAttribute('aria-labelledby', button.id);
+        }
+      });
+
+      localStorage.setItem(this.STORAGE_KEY, tabId);
+
+      const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+      if (activeBtn) activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+      if (tabId === 'history') History.render();
+
+      // Restore scroll position for concrete tab
+      setTimeout(() => {
+        const savedScroll = localStorage.getItem(`${this.SCROLL_KEY}_${tabId}`);
+        if (savedScroll) {
+          window.scrollTo({ top: parseInt(savedScroll), behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 0);
+    }
+  };
+
+  const Mascot = {
+    show() {
+      if (Theme.current() !== 'cat') return;
+      const mascot = document.getElementById('mascot');
+      mascot.classList.remove('show');
+      void mascot.offsetWidth;
+      mascot.classList.add('show');
+      clearTimeout(this._timer);
+      this._timer = setTimeout(() => mascot.classList.remove('show'), 1200);
+    }
+  };
+
+  const AutoCalc = {
+    CALC_DELAY: 500,
+    SAVE_DELAY: 1000,
+
+    calcTimers: new Map(),
+    saveTimers: new Map(),
+    pendingRecords: new Map(),
+    currentKey: null,
+
+    getResultId(item) {
+      if (item.type === 'invoice') return 'inv-result';
+
+      for (const key of Object.keys(item.inputs || {})) {
+        const input = document.getElementById(key);
+        const result = input?.closest('.card')?.querySelector('.result');
+
+        if (result?.id) return result.id;
+      }
+
+      return null;
+    },
+
+    schedule(card, callback) {
+      const result = card?.querySelector('.result');
+
+      if (!result || result.style.display === 'none' || !result.id) return;
+
+      const key = result.id;
+
+      // New changing canceled previous timers for this card
+      this.cancel(key);
+
+      const timer = setTimeout(() => {
+        this.calcTimers.delete(key);
+
+        const previousKey = this.currentKey;
+        this.currentKey = key;
+
+        try {
+          callback();
+        } finally {
+          this.currentKey = previousKey;
+        }
+      }, this.CALC_DELAY);
+
+      this.calcTimers.set(key, timer);
+    },
+
+    queueSave(item) {
+      const key = this.currentKey;
+      if (History.isSameAsLatest(item)) return;
+
+      // Saving result snapshot by this calc
+      const source = item.resultData || ResultBuilder.lastResult;
+      const resultData = source
+        ? {
+            ...source,
+            rows: source.rows.map(row => ({ ...row }))
+          }
+        : undefined;
+
+      const record = {
+        ...item,
+        ...(resultData ? { resultData } : {})
+      };
+
+      this.pendingRecords.set(key, record);
+      this.showStatus(key, '⏳', 'Saving to history');
+
+      clearTimeout(this.saveTimers.get(key));
+
+      const timer = setTimeout(() => {
+        this.saveTimers.delete(key);
+
+        const pending = this.pendingRecords.get(key);
+        this.pendingRecords.delete(key);
+
+        if (!pending) return;
+
+        History.saveNow(pending);
+        this.showStatus(key, '✓', 'Saved to history');
+      }, this.SAVE_DELAY);
+
+      this.saveTimers.set(key, timer);
+    },
+
+    cancel(key) {
+      clearTimeout(this.calcTimers.get(key));
+      clearTimeout(this.saveTimers.get(key));
+
+      this.calcTimers.delete(key);
+      this.saveTimers.delete(key);
+      this.pendingRecords.delete(key);
+
+      const result = document.getElementById(key);
+      result?.querySelector('.result-status')?.remove();
+    },
+
+    showStatus(resultId, symbol, title) {
+      const result = document.getElementById(resultId);
+      if (!result) return;
+
+      let status = result.querySelector('.result-status');
+
+      if (!status) {
+        status = document.createElement('span');
+        status.className = 'result-status';
+        result.appendChild(status);
+      }
+
+      clearTimeout(status._hideTimer);
+
+      status.textContent = symbol;
+      status.title = title;
+      status.className = `result-status ${symbol === '✓' ? 'saved' : 'pending'}`;
+
+      if (symbol === '✓') {
+        status._hideTimer = setTimeout(() => status.remove(), 2000);
+      }
+    }
+  };
+
+  const History = {
+    STORAGE_KEY: 'catculator_history',
+    TRASH_KEY: 'catculator_trash',
+    MAX_ITEMS: 1000,
+    MAX_TRASH_ITEMS: 100,
+
+    getAll() {
+      try {
+        const data = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+
+        return Array.isArray(data) ? data.filter(item => this.isValidItem(item)) : [];
+      } catch {
+        return [];
+      }
+    },
+
+    getTrash() {
+      try {
+        const data = JSON.parse(localStorage.getItem(this.TRASH_KEY) || '[]');
+
+        return Array.isArray(data) ? data.filter(item => this.isValidItem(item)) : [];
+      } catch {
+        return [];
+      }
+    },
+
+    saveTrash(items) {
+      const trimmed = items.slice(0, this.MAX_TRASH_ITEMS);
+      localStorage.setItem(this.TRASH_KEY, JSON.stringify(trimmed));
+    },
+
+    moveToTrash(item) {
+      const trash = this.getTrash();
+
+      if (trash.some(entry => String(entry.id) === String(item.id))) {
+        return;
+      }
+
+      trash.unshift(item);
+      this.saveTrash(trash);
+    },
+
+    toggleTrash() {
+      const historyView = document.getElementById('history-view');
+      const trashView = document.getElementById('history-trash');
+      const title = document.getElementById('history-title');
+      const description = document.getElementById('history-description');
+      const button = document.getElementById('history-toggle-btn');
+      const actions = document.getElementById('history-actions');
+      const historyCount = document.getElementById('history-count');
+      const trashCount = document.getElementById('trash-count');
+
+      if (
+        !historyView || !trashView || !title ||
+        !description || !button || !actions ||
+        !historyCount || !trashCount
+      ) {
+        return;
+      }
+
+      const showTrash = trashView.style.display === 'none';
+
+      historyView.style.display = showTrash ? 'none' : 'block';
+      trashView.style.display = showTrash ? 'block' : 'none';
+      actions.style.display = showTrash ? 'none' : 'flex';
+
+      title.textContent = showTrash ? 'Recycle bin' : 'Calculation history';
+
+      description.textContent = showTrash
+        ? 'Deleted records are kept here until permanently deleted. Maximum 100 records.'
+        : 'Last 1000 calculations. Click any item to reopen it.';
+
+      button.textContent = showTrash ? '📜 History' : '🗑️ Recycle bin';
+
+      historyCount.style.display = showTrash ? 'none' : 'inline';
+      trashCount.style.display = showTrash ? 'inline' : 'none';
+
+      if (showTrash) {
+        this.renderTrash();
+      } else {
+        this.render();
+      }
+    },
+
+    restoreItem(id) {
+      const trash = this.getTrash();
+      const item = trash.find(entry => String(entry.id) === String(id));
+
+      if (!item) return;
+
+      const history = this.getAll();
+
+      if (history.some(entry => String(entry.id) === String(item.id))) {
+        item.id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      }
+
+      const restoredHistory = [...history, item].sort(
+        (a, b) => Number(b.timestamp) - Number(a.timestamp)
+      );
+
+      const trimmedHistory = restoredHistory.slice(0, this.MAX_ITEMS);
+
+      // Do not silently lose a restored record because of the history limit.
+      if (!trimmedHistory.some(entry => String(entry.id) === String(item.id))) {
+        Toast.error('History is full. Remove older records before restoring this one.');
+        return;
+      }
+
+      localStorage.setItem(
+        this.STORAGE_KEY,
+        JSON.stringify(trimmedHistory)
+      );
+
+      this.saveTrash(
+        trash.filter(entry => String(entry.id) !== String(id))
+      );
+
+      this.render();
+      this.renderTrash();
+
+      Toast.success('Record restored');
+    },
+
+    deleteForever(id) {
+      if (!confirm('Permanently delete this record?')) return;
+
+      const trash = this.getTrash().filter(
+        item => String(item.id) !== String(id)
+      );
+
+      this.saveTrash(trash);
+      this.renderTrash();
+
+      Toast.success('Record permanently deleted');
+    },
+
+    emptyTrash() {
+      if (!confirm('Permanently delete all records in Recycle Bin?')) return;
+
+      this.saveTrash([]);
+      this.renderTrash();
+
+      Toast.success('Trash emptied');
+    },
+
+    renderTrash() {
+      const list = document.getElementById('trash-list');
+      const count = document.getElementById('trash-count');
+
+      if (!list) return;
+
+      const items = this.getTrash();
+
+      if (count) {
+        count.textContent = `${items.length} / ${this.MAX_TRASH_ITEMS}`;
+      }
+
+      if (items.length === 0) {
+        list.innerHTML = `
+          <div class="history-empty">
+            <div class="history-empty-icon">🗑️</div>
+            <div>Recycle Bin is empty</div>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = items.map(item => {
+        const timeStr = new Date(item.timestamp).toLocaleString();
+
+        return `
+          <div class="trash-item">
+            <div class="history-item-header">
+              <span class="history-item-type">
+                ${this.escapeHtml(item.type)}
+              </span>
+              <span class="history-item-time">${timeStr}</span>
+            </div>
+
+            <div class="history-item-summary">
+              ${this.escapeHtml(item.summary || '')}
+            </div>
+
+            <div class="history-item-result">
+              ${this.escapeHtml(item.resultText || '')}
+            </div>
+
+            <div class="trash-item-actions">
+              <button
+                class="btn btn-secondary btn-small"
+                type="button"
+                data-restore-id="${this.escapeHtml(String(item.id))}"
+              >Restore</button>
+
+              <button
+                class="btn btn-secondary btn-small"
+                type="button"
+                data-delete-forever-id="${this.escapeHtml(String(item.id))}"
+              >Delete permanently</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      list.querySelectorAll('[data-restore-id]').forEach(button => {
+        button.addEventListener('click', () => {
+          this.restoreItem(button.dataset.restoreId);
+        });
+      });
+
+      list.querySelectorAll('[data-delete-forever-id]').forEach(button => {
+        button.addEventListener('click', () => {
+          this.deleteForever(button.dataset.deleteForeverId);
+        });
+      });
+    },
+
+    isSameAsLatest(item) {
+      const last = this.getAll()[0];
+
+      return Boolean(
+        last &&
+        last.type === item.type &&
+        last.calculator === item.calculator &&
+        last.resultText === item.resultText &&
+        JSON.stringify(last.inputs) === JSON.stringify(item.inputs)
+      );
+    },
+
+    isValidInvoiceInputs(inputs) {
+      const validVatRates = ['20', '10', '5', '0', 'custom'];
+
+      if (!Array.isArray(inputs.items) || inputs.items.length === 0 || !validVatRates.includes(inputs['inv-vat'])) {
+        return false;
+      }
+
+      const validItems = inputs.items.every(item =>
+        item &&
+        typeof item === 'object' &&
+        !Array.isArray(item) &&
+        typeof item.name === 'string' &&
+        item.name.length <= 10000 &&
+        typeof item.qty === 'number' &&
+        Number.isFinite(item.qty) &&
+        item.qty >= 0 &&
+        typeof item.price === 'number' &&
+        Number.isFinite(item.price) &&
+        item.price >= 0 &&
+        typeof item.adjustment === 'number' &&
+        Number.isFinite(item.adjustment) &&
+        item.adjustment >= -100
+      );
+
+      if (!validItems) return false;
+
+      if (inputs['inv-vat'] === 'custom') {
+        return typeof inputs['inv-custom'] === 'number' &&
+          Number.isFinite(inputs['inv-custom']) &&
+          inputs['inv-custom'] >= 0;
+      }
+
+      return inputs['inv-custom'] === undefined;
+    },
+
+    isValidItem(item) {
+      return Boolean(
+        item &&
+        typeof item === 'object' &&
+        !Array.isArray(item) &&
+        typeof item.id === 'string' &&
+        typeof item.timestamp === 'number' &&
+        Number.isFinite(item.timestamp) &&
+        Number.isFinite(new Date(item.timestamp).getTime()) &&
+        typeof item.type === 'string' &&
+        typeof item.tab === 'string' &&
+        typeof item.calculator === 'string' &&
+        item.inputs &&
+        typeof item.inputs === 'object' &&
+        !Array.isArray(item.inputs) &&
+        typeof item.summary === 'string' &&
+        typeof item.resultText === 'string' &&
+        (item.type !== 'invoice' || (
+          item.tab === 'invoice' &&
+          item.calculator === 'invoiceCalc' &&
+          this.isValidInvoiceInputs(item.inputs)
+        )) &&
+        (item.resultData === undefined || this.isValidResultData(item.resultData))
+      );
+    },
+
+    isValidResultData(data) {
+      return Boolean(
+        data &&
+        typeof data === 'object' &&
+        !Array.isArray(data) &&
+        typeof data.mainLabel === 'string' &&
+        typeof data.mainValue === 'string' &&
+        Array.isArray(data.rows) &&
+        data.rows.length <= 100 &&
+        data.rows.every(row =>
+          row &&
+          typeof row === 'object' &&
+          !Array.isArray(row) &&
+          typeof row.label === 'string' &&
+          typeof row.value === 'string' &&
+          (row.type === undefined || row.type === '' || row.type === 'positive' || row.type === 'negative')
+        ) &&
+        (data.copyText === undefined || typeof data.copyText === 'string')
+      );
+    },
+
+    normalizeImportedItem(item) {
+      if (
+        !item ||
+        typeof item !== 'object' ||
+        Array.isArray(item) ||
+        (typeof item.id !== 'string' && typeof item.id !== 'number') ||
+        typeof item.timestamp !== 'number' ||
+        !Number.isFinite(item.timestamp) ||
+        !Number.isFinite(new Date(item.timestamp).getTime()) ||
+        typeof item.type !== 'string' ||
+        typeof item.tab !== 'string' ||
+        !document.getElementById(item.tab)?.classList.contains('tab-content') ||
+        typeof item.calculator !== 'string' ||
+        typeof item.summary !== 'string' ||
+        typeof item.resultText !== 'string' ||
+        !item.inputs ||
+        typeof item.inputs !== 'object' ||
+        Array.isArray(item.inputs)
+      ) {
+        return null;
+      }
+
+      const allowedTypes = new Set(
+        Array.from(document.querySelectorAll('#hist-filter option'))
+          .map(option => option.value)
+          .filter(Boolean)
+      );
+
+      if (!allowedTypes.has(item.type)) return null;
+
+      if (item.inputs['dt-mode'] !== undefined && !['add', 'between'].includes(item.inputs['dt-mode'])) {
+        return null;
+      }
+
+      const inputs = {};
+
+      for (const [key, value] of Object.entries(item.inputs)) {
+        if (typeof key !== 'string' || key.length > 100) {
+          return null;
+        }
+
+        if (key === 'items') {
+          if (item.type !== 'invoice' || !Array.isArray(value)) {
+            return null;
+          }
+
+          inputs.items = value.map(entry => ({
+            name: entry.name,
+            qty: entry.qty,
+            price: entry.price,
+            adjustment: entry.adjustment
+          }));
+
+          continue;
+        }
+
+        if (
+          value === null ||
+          typeof value === 'string' ||
+          (typeof value === 'number' && Number.isFinite(value))
+        ) {
+          if (typeof value === 'string' && value.length > 10000) {
+            return null;
+          }
+
+          inputs[key] = value;
+          continue;
+        }
+
+        return null;
+      }
+
+      let resultData;
+      if (item.resultData !== undefined) {
+        if (!this.isValidResultData(item.resultData)) {
+          return null;
+        }
+
+        resultData = {
+          mainLabel: item.resultData.mainLabel,
+          mainValue: item.resultData.mainValue,
+          rows: item.resultData.rows.map(row => ({
+            label: row.label,
+            value: row.value,
+            type: row.type
+          }))
+        };
+
+        if (item.resultData.copyText !== undefined) {
+          resultData.copyText = item.resultData.copyText;
+        }
+      }
+
+      if (item.type === 'invoice' && (
+        item.tab !== 'invoice' ||
+        item.calculator !== 'invoiceCalc' ||
+        !this.isValidInvoiceInputs(inputs)
+      )) {
+        return null;
+      }
+
+      return {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        timestamp: item.timestamp,
+        type: item.type.slice(0, 100),
+        tab: item.tab.slice(0, 100),
+        calculator: item.calculator.slice(0, 100),
+        inputs,
+        summary: item.summary.slice(0, 1000),
+        resultText: item.resultText.slice(0, 1000),
+        ...(resultData ? { resultData } : {})
+      };
+    },
+
+    save(item) {
+      if (AutoCalc.currentKey) {
+        AutoCalc.queueSave(item);
+        return;
+      }
+
+      const resultId = AutoCalc.getResultId(item);
+      if (resultId) AutoCalc.cancel(resultId);
+      this.saveNow(item);
+
+      if (resultId) {
+        AutoCalc.showStatus(resultId, '✓', 'Saved to history');
+      }
+    },
+
+    saveNow(item) {
+      const all = this.getAll();
+
+      const record = {
+        id: Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+        timestamp: Date.now(),
+        ...item
+      };
+
+      const last = all[0];
+
+      if (last && last.type === record.type && last.calculator === record.calculator && last.resultText === record.resultText &&
+        JSON.stringify(last.inputs) === JSON.stringify(record.inputs)) {
+        return;
+      }
+
+      const isConverter = record.calculator === 'markupToMargin' || record.calculator === 'marginToMarkup';
+      if (!record.resultData && !isConverter && ResultBuilder.lastResult) {
+        record.resultData = {
+          ...ResultBuilder.lastResult,
+          rows: ResultBuilder.lastResult.rows.map(row => ({ ...row }))
+        };
+      }
+
+      all.unshift(record);
+      const trimmed = all.slice(0, this.MAX_ITEMS);
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trimmed));
+      this.updateCount();
+    },
+
+    deleteItem(id) {
+      const items = this.getAll();
+      const item = items.find(entry => String(entry.id) === String(id));
+
+      if (!item) return;
+
+      this.moveToTrash(item);
+
+      const remaining = items.filter(entry => String(entry.id) !== String(id));
+
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(remaining));
+
+      this.render();
+      this.renderTrash();
+
+      Toast.success('Moved to Recycle Bin');
+    },
+
+    clear() {
+      if (!confirm('Clear all history?')) return;
+      localStorage.setItem(this.STORAGE_KEY, '[]');
+      this.render();
+      Toast.success('History cleared');
+    },
+
+    updateCount() {
+      const count = this.getAll().length;
+      const element = document.getElementById('history-count');
+
+      if (element) {
+        element.textContent = `${count} / ${this.MAX_ITEMS}`;
+      }
+    },
+
+    render() {
+      const list = document.getElementById('history-list');
+      if (!list) return;
+      this.updateCount();
+      const search = (document.getElementById('hist-search')?.value || '').toLowerCase();
+      const filter = document.getElementById('hist-filter')?.value || '';
+      let items = this.getAll();
+      if (filter) items = items.filter(i => i.type === filter);
+
+      if (search) {
+        items = items.filter(item => {
+          const invoiceNames = item.type === 'invoice'
+            ? (item.inputs?.items || [])
+                .map(entry => entry.name || '')
+                .join(' ')
+            : '';
+
+          const searchableText = [
+            item.summary || '',
+            item.resultText || '',
+            invoiceNames
+          ].join(' ').toLowerCase();
+
+          return searchableText.includes(search);
+        });
+      }
+
+      if (items.length === 0) {
+        list.innerHTML = `<div class="history-empty"><div class="history-empty-icon">📭</div><div>No calculations yet</div></div>`;
+        return;
+      }
+      list.innerHTML = items.map(item => {
+        const date = new Date(item.timestamp);
+        const timeStr = date.toLocaleString();
+        return `
+          <div class="history-item" data-history-id="${this.escapeHtml(String(item.id))}">
+            <div class="history-item-header">
+              <span class="history-item-type">${this.escapeHtml(item.type)}</span>
+              <div class="history-item-actions">
+                <span class="history-item-time">${timeStr}</span>
+                <button
+                  class="history-delete-btn"
+                  type="button"
+                  title="Delete record"
+                  aria-label="Delete record"
+                  data-delete-id="${this.escapeHtml(String(item.id))}"
+                >🗑</button>
+              </div>
+            </div>
+            <div class="history-item-summary">${this.escapeHtml(item.summary || '')}</div>
+            <div class="history-item-result">${this.escapeHtml(item.resultText || '')}</div>
+          </div>
+        `;
+      }).join('');
+      list.querySelectorAll('.history-item').forEach(element => {
+        element.addEventListener('click', () => {
+          this.openItem(element.dataset.historyId);
+        });
+      });
+      list.querySelectorAll('.history-delete-btn').forEach(button => {
+        button.addEventListener('click', event => {
+          event.stopPropagation();
+          this.deleteItem(button.dataset.deleteId);
+        });
+      });
+    },
+
+    escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    },
+
+    openItem(id) {
+      const item = this.getAll().find(i => String(i.id) === String(id));
+      if (!item) return;
+      
+      const pendingResultId = AutoCalc.getResultId(item);
+      if (pendingResultId) AutoCalc.cancel(pendingResultId);
+
+      // Restore Offers with exactly the required number of rows.
+      if (item.type === 'offers' && item.inputs) {
+        Offers.reset();
+
+        const offerIndexes = Object.keys(item.inputs)
+          .map(key => {
+            const match = key.match(/^off-([a-z])-price$/);
+            return match ? match[1].charCodeAt(0) - 96 : 0;
+          });
+
+        const neededOffers = Math.max(2, ...offerIndexes);
+
+        while (Offers.count < neededOffers) {
+          Offers.addOffer();
+        }
+      }
+
+      // Restore Date mode before restoring its input values.
+      if (item.inputs && item.inputs['dt-mode']) {
+        const mode = item.inputs['dt-mode'];
+
+        document.querySelectorAll('input[name="dt-mode"]').forEach(radio => {
+          radio.checked = radio.value === mode;
+        });
+
+        DateCalc.switchMode();
+      }
+
+      // Restore Invoice rows and VAT.
+      if (item.type === 'invoice') {
+        Invoice.restore(
+          item.inputs.items,
+          item.inputs['inv-vat'],
+          item.inputs['inv-custom']
+        );
+      }
+
+      // Restore ordinary input values.
+      if (item.inputs) {
+        Object.entries(item.inputs).forEach(([key, value]) => {
+          const element = document.getElementById(key);
+
+          if (
+            element &&
+            (typeof value === 'string' || typeof value === 'number')
+          ) {
+            element.value = value;
+          }
+        });
+      }
+
+      // Restore custom VAT field visibility.
+      if (item.calculator === 'vatAdd' ||
+          item.calculator === 'vatExtract') {
+        const vatRate = document.getElementById('vat-rate');
+        document.getElementById('vat-custom-group').style.display =
+          vatRate.value === 'custom' ? 'block' : 'none';
+      }
+
+      // Restore selected operation for cards with multiple calculation modes.
+      if (item.calculator === 'percentIncrease' ||
+          item.calculator === 'percentDecrease') {
+        const card = document.getElementById('pinc-result')?.closest('.card');
+        if (card) card.dataset.autoCalculator = item.calculator;
+      }
+
+      if (item.calculator === 'vatAdd' ||
+          item.calculator === 'vatExtract') {
+        const card = document.getElementById('vat-result')?.closest('.card');
+        if (card) card.dataset.autoCalculator = item.calculator;
+      }
+
+      // Switch to the calculator tab.
+      if (item.tab) Tabs.activate(item.tab);
+
+      // Restore the saved result without running calculator methods.
+      if (item.inputs && item.type !== 'invoice') {
+        const firstInput = Object.keys(item.inputs)
+          .map(key => document.getElementById(key))
+          .find(Boolean);
+
+        const result = item.type === 'invoice'
+          ? document.getElementById('inv-result')
+          : firstInput?.closest('.card')?.querySelector('.result');
+
+        if (result) {
+          const resultData = item.resultData || {
+            mainLabel: 'Saved result',
+            mainValue: item.resultText || '',
+            rows: []
+          };
+
+          result.innerHTML = ResultBuilder.build(resultData);
+          if (item.type === 'offers') {
+            const offers = Object.entries(item.inputs || {})
+              .filter(([key]) => /^off-[a-z]-price$/.test(key))
+              .map(([key, price]) => {
+                const letter = key.match(/^off-([a-z])-price$/)[1];
+                const qty = Number(item.inputs[`off-${letter}-qty`]);
+
+                return {
+                  letter: letter.toUpperCase(),
+                  unitPrice: Number(price) / qty
+                };
+              })
+              .filter(offer =>
+                Number.isFinite(offer.unitPrice) && offer.unitPrice >= 0
+              );
+
+            if (offers.length >= 2) {
+              result.innerHTML += Offers.buildChart(
+                offers,
+                item.inputs['off-unit'] || 'unit'
+              );
+            }
+          }
+          result.style.display = 'block';
+        }
+      }
+
+      // Scroll to the calculator.
+      if (item.inputs) {
+        const firstInput = Object.keys(item.inputs)
+          .map(key => document.getElementById(key))
+          .find(Boolean);
+
+        const card = firstInput?.closest('.card');
+
+        if (card) {
+          setTimeout(() => {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 150);
+        }
+      }
+
+      Toast.info('Calculation restored');
+    },
+
+    exportCSV() {
+      const items = this.getAll();
+      if (items.length === 0) { Toast.error('History is empty'); return; }
+      const rows = [[
+      'Date',
+      'Type',
+      'Summary',
+      'Result',
+      'Inputs',
+      'Result details'
+    ]];
+
+    const safeCSVText = value => {
+      const text = String(value ?? '');
+      return /^[\s\u0000-\u001F]*[=+\-@]/.test(text) ? `'${text}` : text;
+    };
+
+    items.forEach(item => rows.push([
+      new Date(item.timestamp).toISOString(),
+      item.type,
+      safeCSVText(item.summary),
+      safeCSVText(item.resultText),
+      JSON.stringify(item.inputs || {}),
+      JSON.stringify(item.resultData || {})
+    ]));
+
+      Export.downloadCSV('catculator-history.csv', rows);
+      Toast.success('CSV exported');
+    },
+    exportJSON() {
+      const items = this.getAll();
+      if (items.length === 0) {
+        Toast.error('History is empty');
+        return;
+      }
+
+      const data = {
+        app: 'CATculator',
+        records: items
+      };
+
+      Export.downloadJSON('catculator-history.json', data);
+      Toast.success('JSON exported');
+    },
+
+    importJSON() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = (ev) => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            if (!data || typeof data !== 'object' || Array.isArray(data) || data.app !== 'CATculator' || !Array.isArray(data.records)) {
+              throw new Error('Invalid format');
+            }
+            const imported = data.records.map(item => this.normalizeImportedItem(item));
+            if (imported.some(item => item === null)) {
+              throw new Error('Invalid history records');
+            }
+            if (imported.length > this.MAX_ITEMS) {
+              throw new Error('Too many history records');
+            }
+            if (!confirm(`Replace current history with ${imported.length} imported records?`)) {
+              return;
+            }
+
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(imported));
+            this.render();
+            Toast.success(`Imported ${imported.length} items`);
+          } catch (err) {
+            Toast.error('Invalid JSON file or history format');
+          }
+        };
+
+        reader.readAsText(file);
+      };
+
+      input.click();
+    }
+  };
+
+  const ResultBuilder = {
+    build({ mainLabel, mainValue, rows = [], copyText }) {
+      const resultData = {
+      mainLabel: String(mainLabel),
+      mainValue: String(mainValue),
+      rows: rows.map(r => ({
+        label: String(r.label),
+        value: String(r.value),
+        type: r.type === 'positive' || r.type === 'negative'
+          ? r.type
+          : ''
+      }))
+    };
+
+    if (copyText !== undefined) {
+      resultData.copyText = String(copyText);
+    }
+
+    this.lastResult = resultData;
+
+    rows = resultData.rows;
+    mainLabel = resultData.mainLabel;
+    mainValue = resultData.mainValue;
+    copyText = resultData.copyText;
+      const rowsHtml = rows.map(r => {
+        const cls = r.type === 'positive' ? 'positive' : r.type === 'negative' ? 'negative' : '';
+        return `
+          <div class="result-row">
+            <span class="result-row-label">${Utils.escapeHtml(String(r.label))}</span>
+            <span class="result-row-value ${cls} numbers">${Utils.escapeHtml(String(r.value))}</span>
+          </div>
+        `;
+      }).join('');
+
+      const finalCopyText = copyText || this._buildCopyText(mainLabel, mainValue, rows);
+
+      return `
+        <div class="result-label">${Utils.escapeHtml(mainLabel)}</div>
+        <div class="result-value numbers">${Utils.escapeHtml(String(mainValue))}</div>
+        ${rowsHtml ? `<div class="result-details">${rowsHtml}</div>` : ''}
+        <div class="result-actions">
+          <button class="btn btn-secondary btn-small" onclick="Clipboard.copy(this.dataset.copy)" data-copy="${Utils.escapeHtml(finalCopyText)}">📋 Copy result</button>
+        </div>
+      `;
+    },
+
+    _buildCopyText(mainLabel, mainValue, rows) {
+      const parts = [`${mainLabel}: ${mainValue}`];
+      rows.forEach(r => parts.push(`${r.label}: ${r.value}`));
+      return parts.join('\n');
+    }
+  };
+
+  const Offers = {
+    count: 2,
+
+    addOffer() {
+      const OFFER_LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      if (this.count >= OFFER_LABELS.length) {
+          Toast.info('Maximum number of offers reached');
+          return;
+        }
+      this.count++;
+
+      const letter = OFFER_LABELS[this.count - 1];
+      const lower = letter.toLowerCase();
+
+      const container = document.getElementById('offers-container');
+      const row = document.createElement('tr');
+
+      const removeButton = this.count > 2
+        ? `<button class="btn btn-secondary btn-small"
+                   onclick="Offers.removeOffer(this)"
+                   type="button"
+                   aria-label="Remove offer ${letter}">×</button>`
+        : '';
+
+      row.innerHTML = `
+        <td class="offer-name">Offer ${letter}</td>
+        <td>
+          <input type="number" id="off-${lower}-price"
+                 step="any" placeholder="100"
+                 aria-label="Offer ${letter} price">
+        </td>
+        <td>
+          <input type="number" id="off-${lower}-qty"
+                 step="any" placeholder="10"
+                 aria-label="Offer ${letter} quantity">
+        </td>
+        <td>${removeButton}</td>
+      `;
+
+      container.appendChild(row);
+      document.getElementById('add-offer-btn').disabled = this.count >= OFFER_LABELS.length;
+    },
+
+    removeOffer(button) {
+      const container = document.getElementById('offers-container');
+
+      if (container.rows.length <= 2) {
+        Toast.info('At least two offers are required');
+        return;
+      }
+
+      const row = button.closest('tr');
+      if (!row) return;
+
+      row.remove();
+
+      Array.from(container.rows).forEach((row, index) => {
+        const letter = String.fromCharCode(65 + index);
+        const lower = letter.toLowerCase();
+
+        row.querySelector('.offer-name').textContent = `Offer ${letter}`;
+
+        const inputs = row.querySelectorAll('input');
+
+        inputs[0].id = `off-${lower}-price`;
+        inputs[1].id = `off-${lower}-qty`;
+
+        inputs[0].setAttribute('aria-label', `Offer ${letter} price`);
+        inputs[1].setAttribute('aria-label', `Offer ${letter} quantity`);
+
+        const actionCell = row.cells[3];
+        if (index < 2) {
+          actionCell.innerHTML = '';
+        } else {
+          let removeButton = actionCell.querySelector('button');
+
+          if (!removeButton) {
+            actionCell.innerHTML = `
+              <button class="btn btn-secondary btn-small"
+                      onclick="Offers.removeOffer(this)"
+                      type="button">×</button>
+            `;
+            removeButton = actionCell.querySelector('button');
+          }
+
+          removeButton.setAttribute('aria-label', `Remove offer ${letter}`);
+        }
+      });
+
+      this.count = container.rows.length;
+      document.getElementById('add-offer-btn').disabled = false;
+
+      const result = document.getElementById('off-result');
+
+      if (result && result.style.display !== 'none') {
+        AutoCalc.schedule(result.closest('.card'), () => {
+          Calculators.compareOffers();
+        });
+      }
+    },
+
+    buildChart(offers, unit) {
+      const sorted = [...offers].sort(
+        (a, b) => a.unitPrice - b.unitPrice
+      );
+
+      const maxPrice = Math.max(
+        ...sorted.map(offer => offer.unitPrice),
+        1
+      );
+
+      const rows = sorted.map((offer, index) => {
+        const width = (offer.unitPrice / maxPrice) * 100;
+
+        return `
+          <div class="mini-chart-row">
+            <span>Offer ${offer.letter}</span>
+            <div class="mini-chart-track">
+              <div class="mini-chart-bar ${index === 0 ? 'best' : ''}"
+                   style="width:${width}%"></div>
+            </div>
+            <span class="mini-chart-value">
+              ${Utils.escapeHtml(Utils.formatMoney(offer.unitPrice))}
+            </span>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="mini-chart">
+          <div class="mini-chart-title">
+            Price per ${Utils.escapeHtml(unit)} — lower is better
+          </div>
+          ${rows}
+        </div>
+      `;
+    },
+
+    reset() {
+      const container = document.getElementById('offers-container');
+      container.innerHTML = '';
+
+      this.count = 0;
+      this.addOffer();
+      this.addOffer();
+
+      document.getElementById('off-unit').value = '';
+    }
+  };
+
+  const Invoice = {
+    hasCalculated: false,
+
+    getValidationError() {
+      const rows = document.querySelectorAll('#invoice-items tr');
+
+      for (const row of rows) {
+        const inputs = row.querySelectorAll('input');
+        const qty = Utils.parseNumber(inputs[1].value);
+        const price = Utils.parseNumber(inputs[2].value);
+        const adjustment = inputs[3].value.trim() === '' ? 0 : Utils.parseNumber(inputs[3].value);
+
+        if (!Number.isFinite(qty) || qty < 0) {
+          return 'Invoice quantity must be non-negative';
+        }
+        if (!Number.isFinite(price) || price < 0) {
+          return 'Invoice price must be non-negative';
+        }
+        if (!Number.isFinite(adjustment) || adjustment < -100) {
+          return 'Adjustment must be a valid number not less than -100%';
+        }
+      }
+
+      const vatSel = document.getElementById('inv-vat');
+
+      if (vatSel.value === 'custom') {
+        const customVatInput = document.getElementById('inv-custom').value.trim();
+        if (customVatInput !== '') {
+          const vat = Utils.getNum('inv-custom');
+          if (!Number.isFinite(vat) || vat < 0) {
+            return 'Custom VAT rate must be non-negative';
+          }
+        }
+      }
+
+      return null;
+    },
+
+    validateInputs(showErrors = true) {
+      const error = this.getValidationError();
+
+      if (error) {
+        if (showErrors) {
+          Toast.error(error);
+        }
+        return false;
+      }
+
+      return true;
+    },
+
+    addRow(silent = false) {
+      const tbody = document.getElementById('invoice-items');
+      const row = document.createElement('tr');
+
+      row.innerHTML = `
+        <td><input type="text" placeholder="Item name" aria-label="Invoice item name" oninput="Invoice.autoCalc()"></td>
+        <td><input type="number" step="any" placeholder="1" aria-label="Invoice quantity" oninput="Invoice.autoCalc()"></td>
+        <td><input type="number" step="any" placeholder="100" aria-label="Invoice price" oninput="Invoice.autoCalc()"></td>
+        <td><input type="number" step="any" min="-100" placeholder="0" aria-label="Invoice adjustment percentage" oninput="Invoice.autoCalc()"></td>
+        <td class="numbers">0.00</td>
+        <td><button class="btn btn-secondary btn-small" onclick="Invoice.removeRow(this)" type="button" aria-label="Remove invoice row">×</button></td>
+      `;
+
+      tbody.appendChild(row);
+
+      if (!silent) this.autoCalc();
+
+      return row;
+    },
+
+    removeRow(btn) {
+      const tbody = document.getElementById('invoice-items');
+
+      if (tbody.rows.length <= 1) {
+        Toast.info('At least one invoice row is required');
+        return;
+      }
+
+      btn.closest('tr').remove();
+      this.autoCalc();
+    },
+
+    autoCalc() {
+      if (!this.hasCalculated) return;
+      const card = document.getElementById('inv-result').closest('.card');
+
+      AutoCalc.schedule(card, () => {
+        const error = this.getValidationError();
+        if (error) {
+          Utils.setResultFailure('inv-result', error);
+          return;
+        }
+        this.calc();
+        document.getElementById('inv-result').style.display = 'block';
+        this.saveHistory();
+      });
+    },
+
+    calculate() {
+      if (!this.validateInputs()) {
+        Utils.hideResult('inv-result');
+        return;
+      }
+
+      this.hasCalculated = true;
+      this.calc();
+      document.getElementById('inv-result').style.display = 'block';
+      this.saveHistory();
+    },
+
+    calc() {
+      const rows = document.querySelectorAll('#invoice-items tr');
+      let subtotal = 0;
+      const lineItems = [];
+
+      rows.forEach((row, index) => {
+        const inputs = row.querySelectorAll('input');
+
+        const qty = Utils.parseNumber(inputs[1].value) || 0;
+        const price = Utils.parseNumber(inputs[2].value) || 0;
+        const adjustment = inputs[3].value.trim() === '' ? 0 : Utils.parseNumber(inputs[3].value);
+
+        const total = qty * price * (1 + adjustment / 100);
+
+        row.querySelector('td:nth-child(5)').textContent =
+          Utils.formatMoney(total);
+
+        subtotal += total;
+        lineItems.push({
+          name: inputs[0].value.trim() || `Item ${index + 1}`,
+          value: total
+        });
+      });
+
+      const vatSel = document.getElementById('inv-vat');
+      document.getElementById('inv-custom-group').style.display = vatSel.value === 'custom' ? 'block' : 'none';
+
+      let vatRate = 0;
+
+      if (vatSel.value === 'custom') {
+        const customVatInput = document.getElementById('inv-custom').value.trim();
+        vatRate = customVatInput === '' ? 0 : Utils.getNum('inv-custom');
+      } else {
+        vatRate = parseFloat(vatSel.value);
+      }
+
+      const vat = subtotal * (vatRate / 100);
+      const total = subtotal + vat;
+      const chartItems = lineItems.filter(item => item.value > 0);
+
+      if (vat > 0) {
+        chartItems.push({
+          name: `VAT (${vatRate}%)`,
+          value: vat
+        });
+      }
+
+      const chartTotal = chartItems.reduce((sum, item) => sum + item.value, 0);
+      let chartHtml = '';
+
+      if (chartTotal > 0) {
+        const colors = [
+          '#3984d6',
+          '#2ca58d',
+          '#e5a23b',
+          '#9566c4',
+          '#d46b79',
+          '#6596a0'
+        ];
+
+        let angle = 0;
+
+        const segments = chartItems.map((item, index) => {
+          const start = angle;
+          angle += item.value / chartTotal * 360;
+
+          return `${colors[index % colors.length]} ${start}deg ${angle}deg`;
+        });
+
+        const legend = chartItems.map((item, index) => {
+          const percent = item.value / chartTotal * 100;
+
+          return `
+            <div class="invoice-chart-legend-row">
+              <span class="invoice-chart-dot"
+                    style="background:${colors[index % colors.length]}"></span>
+              <span>${Utils.escapeHtml(item.name)}</span>
+              <strong>${percent.toFixed(1)}%</strong>
+            </div>
+          `;
+        }).join('');
+
+        chartHtml = `
+          <div class="mini-chart">
+            <div class="mini-chart-title">Invoice breakdown</div>
+            <div class="invoice-chart-layout">
+              <div class="invoice-pie"
+                   style="background:conic-gradient(${segments.join(', ')})">
+              </div>
+              <div class="invoice-chart-legend">
+                ${legend}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      const html = ResultBuilder.build({
+        mainLabel: 'Total',
+        mainValue: Utils.formatMoney(total),
+        rows: [
+          { label: 'Subtotal', value: Utils.formatMoney(subtotal) },
+          { label: `VAT (${vatRate}%)`, value: Utils.formatMoney(vat) },
+          { label: 'Total', value: Utils.formatMoney(total) }
+        ]
+      });
+
+      document.getElementById('inv-result').innerHTML = html + chartHtml;
+    },
+
+    saveHistory() {
+      const rows = document.querySelectorAll('#invoice-items tr');
+      const vatSel = document.getElementById('inv-vat');
+      const vatRate = vatSel.value === 'custom' ? (Utils.getNum('inv-custom') || 0) : parseFloat(vatSel.value);
+      const items = [];
+      rows.forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        const qty = Utils.parseNumber(inputs[1].value);
+        const price = Utils.parseNumber(inputs[2].value);
+        const adjustment = inputs[3].value.trim() === '' ? 0 : Utils.parseNumber(inputs[3].value);
+        if (Number.isFinite(qty) && Number.isFinite(price)) {
+          items.push({
+            name: inputs[0].value,
+            qty,
+            price,
+            adjustment: Number.isFinite(adjustment) ? adjustment : 0
+          });
+        }
+      });
+      const subtotal = items.reduce((sum, item) => sum + item.qty * item.price * (1 + item.adjustment / 100),0);
+      const total = subtotal * (1 + vatRate / 100);
+      History.save({
+        type: 'invoice',
+        tab: 'invoice',
+        calculator: 'invoiceCalc',
+        inputs: {
+          items,
+          'inv-vat': vatSel.value,
+          'inv-custom': vatSel.value === 'custom' ? vatRate : undefined
+        },
+        summary: `Invoice: ${items.length} items, Total ${Utils.formatMoney(total)}`,
+        resultText: Utils.formatMoney(total)
+      });
+    },
+
+    restore(items, vatValue, vatCustom) {
+      const tbody = document.getElementById('invoice-items');
+      this.hasCalculated = false;
+      while (tbody.rows.length > 1) tbody.deleteRow(1);
+      items.forEach((item, idx) => {
+        const row = idx === 0 ? tbody.rows[0] : this.addRow(true);
+        const inputs = row.querySelectorAll('input');
+        inputs[0].value = item.name;
+        inputs[1].value = item.qty;
+        inputs[2].value = item.price;
+        inputs[3].value = item.adjustment;
+      });
+      const vatSel = document.getElementById('inv-vat');
+      vatSel.value = vatValue;
+
+      const customInput = document.getElementById('inv-custom');
+      const customGroup = document.getElementById('inv-custom-group');
+
+      customInput.value = vatValue === 'custom' ? vatCustom : '';
+      customGroup.style.display = vatSel.value === 'custom' ? 'block' : 'none';
+
+      this.hasCalculated = true;
+      this.calc();
+
+      document.getElementById('inv-result').style.display = 'block';
+    },
+
+    clear() {
+      AutoCalc.cancel('inv-result');
+      const tbody = document.getElementById('invoice-items');
+      while (tbody.rows.length > 1) tbody.deleteRow(1);
+      const firstRow = tbody.rows[0];
+      firstRow.querySelectorAll('input').forEach(i => i.value = '');
+      firstRow.querySelector('td:nth-child(5)').textContent = '0.00';
+      document.getElementById('inv-vat').selectedIndex = 0;
+      document.getElementById('inv-custom').value = '';
+      document.getElementById('inv-custom-group').style.display = 'none';
+      const result = document.getElementById('inv-result');
+      result.innerHTML = '';
+      result.style.display = 'none';
+
+      this.hasCalculated = false;
+    }
+  };
+
+  const DateCalc = {
+    switchMode() {
+      const mode = document.querySelector('input[name="dt-mode"]:checked').value;
+      document.getElementById('dt-end-group').style.display = mode === 'between' ? 'block' : 'none';
+      document.getElementById('dt-days-group').style.display = mode === 'add' ? 'block' : 'none';
+      // Clear fields when switching
+      document.getElementById('dt-end').value = '';
+      document.getElementById('dt-days').value = '';
+      Utils.hideResult('dt-result');
+    },
+    clear() {
+      document.getElementById('dt-start').value = '';
+      document.getElementById('dt-end').value = '';
+      document.getElementById('dt-days').value = '';
+      Utils.hideResult('dt-result');
+    }
+  };
+
+  const Calculators = {
+    percentOf() {
+      const p = Utils.getNum('pof-percent');
+      const n = Utils.getNum('pof-number');
+      if (!Utils.validate(p, n)) { Toast.error('Please enter valid numbers'); return; }
+      const result = (p / 100) * n;
+      const html = ResultBuilder.build({
+        mainLabel: 'Result',
+        mainValue: Utils.formatNumber(result),
+        rows: [{ label: 'Formula', value: `${p}% × ${n} = ${Utils.formatNumber(result)}` }]
+      });
+      Utils.showResult('pof-result', html);
+      History.save({ type: 'percent', tab: 'percent', calculator: 'percentOf', inputs: { 'pof-percent': p, 'pof-number': n }, summary: `${p}% of ${n}`, resultText: Utils.formatNumber(result) });
+      Mascot.show();
+    },
+
+    percentChange() {
+      const from = Utils.getNum('pchg-from');
+      const to = Utils.getNum('pchg-to');
+
+      if (!Number.isFinite(from) || from === 0) {
+        Toast.error('Enter a valid starting value (not zero)');
+        return;
+      }
+      if (!Number.isFinite(to)) {
+        Toast.error('Enter a valid target value');
+        return;
+      }
+
+      const change = ((to - from) / from) * 100;
+      const direction = change >= 0 ? 'increase' : 'decrease';
+      const html = ResultBuilder.build({
+        mainLabel: `Percentage ${direction}`,
+        mainValue: Utils.formatPercent(change),
+        rows: [
+          { label: 'Direction', value: direction === 'increase' ? '↑ Increase' : '↓ Decrease', type: change >= 0 ? 'positive' : 'negative' },
+          { label: 'Absolute change', value: Utils.formatNumber(to - from) }
+        ]
+      });
+      Utils.showResult('pchg-result', html);
+      History.save({ type: 'percent', tab: 'percent', calculator: 'percentChange', inputs: { 'pchg-from': from, 'pchg-to': to }, summary: `Change from ${from} to ${to}`, resultText: `${Utils.formatPercent(Math.abs(change))} ${direction}` });
+      Mascot.show();
+    },
+
+    percentIncrease() {
+      document.getElementById('pinc-result').closest('.card').dataset.autoCalculator = 'percentIncrease';
+      const n = Utils.getNum('pinc-number');
+      const p = Utils.getNum('pinc-percent');
+      if (!Utils.validate(n, p)) { Toast.error('Please enter valid numbers'); return; }
+      const result = n * (1 + p / 100);
+      const html = ResultBuilder.build({
+        mainLabel: 'Increased value',
+        mainValue: Utils.formatNumber(result),
+        rows: [{ label: 'Added amount', value: '+' + Utils.formatNumber(result - n), type: 'positive' }]
+      });
+      Utils.showResult('pinc-result', html);
+      History.save({ type: 'percent', tab: 'percent', calculator: 'percentIncrease', inputs: { 'pinc-number': n, 'pinc-percent': p }, summary: `${n} + ${p}%`, resultText: Utils.formatNumber(result) });
+      Mascot.show();
+    },
+
+    percentDecrease() {
+      document.getElementById('pinc-result').closest('.card').dataset.autoCalculator = 'percentDecrease';
+      const n = Utils.getNum('pinc-number');
+      const p = Utils.getNum('pinc-percent');
+      if (!Utils.validate(n, p)) { Toast.error('Please enter valid numbers'); return; }
+      const result = n * (1 - p / 100);
+      const html = ResultBuilder.build({
+        mainLabel: 'Decreased value',
+        mainValue: Utils.formatNumber(result),
+        rows: [{ label: 'Subtracted amount', value: '-' + Utils.formatNumber(n - result), type: 'negative' }]
+      });
+      Utils.showResult('pinc-result', html);
+      History.save({ type: 'percent', tab: 'percent', calculator: 'percentDecrease', inputs: { 'pinc-number': n, 'pinc-percent': p }, summary: `${n} - ${p}%`, resultText: Utils.formatNumber(result) });
+      Mascot.show();
+    },
+
+    whatPercent() {
+      const x = Utils.getNum('pxofy-x');
+      const y = Utils.getNum('pxofy-y');
+
+      if (!Number.isFinite(x)) {
+        Toast.error('Enter a valid value for X');
+        return;
+      }
+      if (!Number.isFinite(y) || y === 0) {
+        Toast.error('Enter a valid value for Y (not zero)');
+        return;
+      }
+
+      const result = (x / y) * 100;
+      const html = ResultBuilder.build({
+        mainLabel: 'Percentage',
+        mainValue: Utils.formatPercent(result),
+        rows: [{ label: 'Formula', value: `(${x} / ${y}) × 100` }]
+      });
+      Utils.showResult('pxofy-result', html);
+      History.save({ type: 'percent', tab: 'percent', calculator: 'whatPercent', inputs: { 'pxofy-x': x, 'pxofy-y': y }, summary: `${x} is what % of ${y}`, resultText: Utils.formatPercent(result) });
+      Mascot.show();
+    },
+
+    margin() {
+      const cost = Utils.getNum('mrg-cost');
+      const price = Utils.getNum('mrg-price');
+
+      if (!Utils.validate(cost, price)) {
+        Toast.error('Please enter valid numbers');
+        return;
+      }
+      if (cost < 0) {
+        Toast.error('Cost must be non-negative');
+        return;
+      }
+      if (price <= 0) {
+        Toast.error('Selling price must be positive');
+        return;
+      }
+
+      const profit = price - cost;
+      const margin = (profit / price) * 100;
+      const markup = cost === 0 ? NaN : (profit / cost) * 100;
+      const html = ResultBuilder.build({
+        mainLabel: 'Margin',
+        mainValue: Utils.formatPercent(margin),
+        rows: [
+          { label: 'Profit', value: Utils.formatMoney(profit), type: profit >= 0 ? 'positive' : 'negative' },
+          { label: 'Markup', value: isFinite(markup) ? Utils.formatPercent(markup) : 'N/A' },
+          { label: 'Cost', value: Utils.formatMoney(cost) },
+          { label: 'Selling price', value: Utils.formatMoney(price) }
+        ]
+      });
+      Utils.showResult('mrg-result', html);
+      History.save({ type: 'margin', tab: 'margin', calculator: 'margin', inputs: { 'mrg-cost': cost, 'mrg-price': price }, summary: `Cost ${cost}, Price ${price}`, resultText: `Margin ${Utils.formatPercent(margin)}, Profit ${Utils.formatMoney(profit)}` });
+      Mascot.show();
+    },
+
+    priceFromMargin() {
+      const cost = Utils.getNum('mfp-cost');
+      const margin = Utils.getNum('mfp-margin');
+
+      if (!Utils.validate(cost, margin)) {
+        Toast.error('Please enter valid numbers');
+        return;
+      }
+      if (cost < 0) {
+        Toast.error('Cost must be non-negative');
+        return;
+      }
+      if (margin >= 100) {
+        Toast.error('Margin must be less than 100%');
+        return;
+      }
+
+      const price = cost / (1 - margin / 100);
+      const profit = price - cost;
+      const html = ResultBuilder.build({
+        mainLabel: 'Selling price',
+        mainValue: Utils.formatMoney(price),
+        rows: [
+          { label: 'Profit', value: Utils.formatMoney(profit), type: profit >= 0 ? 'positive' : 'negative' },
+          { label: 'Cost', value: Utils.formatMoney(cost) },
+          { label: 'Target margin', value: Utils.formatPercent(margin) }
+        ]
+      });
+      Utils.showResult('mfp-result', html);
+      History.save({ type: 'margin', tab: 'margin', calculator: 'priceFromMargin', inputs: { 'mfp-cost': cost, 'mfp-margin': margin }, summary: `Price for ${margin}% margin on cost ${cost}`, resultText: Utils.formatMoney(price) });
+      Mascot.show();
+    },
+
+    markupToMargin(saveToHistory = false) {
+      const markup = Utils.getNum('mc-markup');
+      if (!isFinite(markup)) { document.getElementById('mc-margin').value = ''; return; }
+      if (markup <= -100) { Toast.error('Markup must be more than -100%'); return; }
+      const margin = markup / (1 + markup / 100);
+      const marginValue = Utils.round(margin, 2);
+      document.getElementById('mc-margin').value = marginValue;
+      if (saveToHistory) {
+        History.save({
+          type: 'margin', tab: 'margin', calculator: 'markupToMargin',
+          inputs: { 'mc-markup': markup, 'mc-margin': marginValue },
+          summary: `Markup ${markup}% to margin`,
+          resultText: `Margin ${Utils.formatPercent(marginValue)}`
+        });
+      }
+    },
+
+    marginToMarkup(saveToHistory = false) {
+      const margin = Utils.getNum('mc-margin');
+      if (!isFinite(margin)) { document.getElementById('mc-markup').value = ''; return; }
+      if (margin >= 100) { Toast.error('Margin must be less than 100%'); return; }
+      const markup = margin / (1 - margin / 100);
+      const markupValue = Utils.round(markup, 2);
+      document.getElementById('mc-markup').value = markupValue;
+      if (saveToHistory) {
+        History.save({
+          type: 'margin', tab: 'margin', calculator: 'marginToMarkup',
+          inputs: { 'mc-markup': markupValue, 'mc-margin': margin },
+          summary: `Margin ${margin}% to markup`,
+          resultText: `Markup ${Utils.formatPercent(markupValue)}`
+        });
+      }
+    },
+
+    breakEven() {
+      const fixed = Utils.getNum('be-fixed');
+      const price = Utils.getNum('be-price');
+      const variable = Utils.getNum('be-variable');
+
+      if (!Utils.validate(fixed, price, variable)) {
+        Toast.error('Please enter valid numbers');
+        return;
+      }
+      if (fixed < 0 || price <= 0 || variable < 0) {
+        Toast.error('Fixed costs and variable costs must be non-negative; price must be positive');
+        return;
+      }
+
+      const contribution = price - variable;
+
+      if (contribution <= 0) {
+        Toast.error('Price must be greater than variable cost');
+        return;
+      }
+
+      const units = Math.ceil(fixed / contribution);
+      const revenue = units * price;
+      const html = ResultBuilder.build({
+        mainLabel: 'Break-even units',
+        mainValue: Utils.formatNumber(units, 0),
+        rows: [
+          { label: 'Contribution per unit', value: Utils.formatMoney(contribution) },
+          { label: 'Break-even revenue', value: Utils.formatMoney(revenue) },
+          { label: 'Fixed costs', value: Utils.formatMoney(fixed) }
+        ]
+      });
+      Utils.showResult('be-result', html);
+      History.save({ type: 'margin', tab: 'margin', calculator: 'breakEven', inputs: { 'be-fixed': fixed, 'be-price': price, 'be-variable': variable }, summary: `Break-even for fixed costs ${fixed}`, resultText: `${units} units` });
+      Mascot.show();
+    },
+
+    brandPerformance() {
+      const plan = Utils.getNum('bp-plan');
+      const fact = Utils.getNum('bp-fact');
+
+      if (!Utils.validate(plan, fact)) {
+        Toast.error('Please enter valid numbers');
+        return;
+      }
+      if (plan <= 0) {
+        Toast.error('Plan must be positive');
+        return;
+      }
+      if (fact < 0) {
+        Toast.error('Fact must be non-negative');
+        return;
+      }
+
+      const achievement = (fact / plan) * 100;
+      const gap = fact - plan;
+      const html = ResultBuilder.build({
+        mainLabel: 'Achievement',
+        mainValue: Utils.formatPercent(achievement),
+        rows: [
+          { label: 'Plan', value: Utils.formatNumber(plan) },
+          { label: 'Fact', value: Utils.formatNumber(fact) },
+          { label: 'Gap', value: (gap >= 0 ? '+' : '') + Utils.formatNumber(gap), type: gap >= 0 ? 'positive' : 'negative' },
+          { label: 'Status', value: achievement >= 100 ? '✓ Target achieved' : '✗ Target missed' }
+        ]
+      });
+      Utils.showResult('bp-result', html);
+      History.save({
+        type: 'brandkpi', tab: 'brandkpi', calculator: 'brandPerformance',
+        inputs: { 'bp-plan': plan, 'bp-fact': fact },
+        summary: `Plan ${plan} vs Fact ${fact}`,
+        resultText: Utils.formatPercent(achievement)
+      });
+      Mascot.show();
+    },
+
+    marketingROI() {
+      const budget = Utils.getNum('mroi-budget');
+      const revenue = Utils.getNum('mroi-revenue');
+      const margin = Utils.getNum('mroi-margin');
+
+      if (!Number.isFinite(budget) || budget <= 0) {
+        Toast.error('Campaign budget must be positive');
+        return;
+      }
+      if (!Number.isFinite(revenue) || revenue < 0) {
+        Toast.error('Revenue must be non-negative');
+        return;
+      }
+      if (!Number.isFinite(margin) || margin < 0 || margin > 100) {
+        Toast.error('Profit margin must be between 0 and 100%');
+        return;
+      }
+
+      const profit = revenue * (margin / 100);
+      const net = profit - budget;
+      const roi = (net / budget) * 100;
+      const html = ResultBuilder.build({
+        mainLabel: 'Marketing ROI',
+        mainValue: Utils.formatPercent(roi),
+        rows: [
+          { label: 'Budget', value: Utils.formatMoney(budget) },
+          { label: 'Revenue', value: Utils.formatMoney(revenue) },
+          { label: 'Estimated gross profit', value: Utils.formatMoney(profit), type: profit >= 0 ? 'positive' : 'negative' },
+          { label: 'Profit after marketing cost', value: Utils.formatMoney(net), type: net >= 0 ? 'positive' : 'negative' }
+        ]
+      });
+      Utils.showResult('mroi-result', html);
+      History.save({
+        type: 'brandkpi', tab: 'brandkpi', calculator: 'marketingROI',
+        inputs: { 'mroi-budget': budget, 'mroi-revenue': revenue, 'mroi-margin': margin },
+        summary: `Budget ${budget}, Revenue ${revenue}`,
+        resultText: Utils.formatPercent(roi)
+      });
+      Mascot.show();
+    },
+
+    funnelConversion() {
+      const stages = [];
+      let emptyFound = false;
+
+      for (let i = 1; i <= 4; i++) {
+        const raw = document.getElementById(`fn-s${i}`).value.trim();
+
+        if (raw === '') {
+          emptyFound = true;
+          continue;
+        }
+
+        if (emptyFound) {
+          Toast.error('Please fill funnel stages in order without gaps');
+          return;
+        }
+
+        const val = Utils.getNum(`fn-s${i}`);
+
+        if (!Number.isFinite(val) || !Number.isInteger(val) || val < 0) {
+          Toast.error('Stage values must be non-negative whole numbers');
+          return;
+        }
+
+        stages.push({ num: i, value: val });
+      }
+
+      if (stages.length < 2) {
+        Toast.error('Please enter at least 2 stages');
+        return;
+      }
+
+      const rows = [];
+
+      for (let i = 0; i < stages.length; i++) {
+        rows.push({
+          label: `Stage ${stages[i].num}`,
+          value: Utils.formatNumber(stages[i].value, 0)
+        });
+
+        if (i > 0) {
+          const previous = stages[i - 1].value;
+          const current = stages[i].value;
+          const conversion = previous === 0
+            ? null
+            : (current / previous) * 100;
+
+          rows.push({
+            label: `  → from stage ${stages[i - 1].num}`,
+            value: conversion === null
+              ? '—'
+              : Utils.formatPercent(conversion)
+          });
+        }
+      }
+
+      const first = stages[0].value;
+      const last = stages[stages.length - 1].value;
+      const totalConv = first === 0 ? null : (last / first) * 100;
+
+      rows.push({
+        label: 'Overall conversion',
+        value: totalConv === null ? '—' : Utils.formatPercent(totalConv),
+        type: 'positive'
+      });
+
+      const html = ResultBuilder.build({
+        mainLabel: 'Overall conversion',
+        mainValue: totalConv === null ? '—' : Utils.formatPercent(totalConv),
+        rows
+      });
+
+      Utils.showResult('fn-result', html);
+
+      const inputs = {};
+      for (let i = 1; i <= 4; i++) {
+        inputs[`fn-s${i}`] = Utils.getNum(`fn-s${i}`);
+      }
+
+      History.save({
+        type: 'brandkpi',
+        tab: 'brandkpi',
+        calculator: 'funnelConversion',
+        inputs,
+        summary: `Funnel: ${stages.map(s => s.value).join(' → ')}`,
+        resultText: totalConv === null ? '—' : Utils.formatPercent(totalConv)
+      });
+
+      Mascot.show();
+    },
+
+    pricePositioning() {
+      const revenue = Utils.getNum('pp-revenue');
+      const units = Utils.getNum('pp-units');
+      const comp = Utils.getNum('pp-comp');
+
+      if (!Number.isFinite(revenue) || revenue < 0) {
+        Toast.error('Revenue must be non-negative');
+        return;
+      }
+      if (!Number.isFinite(units) || units <= 0) {
+        Toast.error('Units sold must be positive');
+        return;
+      }
+
+      const compRaw = document.getElementById('pp-comp').value.trim();
+
+      if (compRaw !== '' && (!Number.isFinite(comp) || comp <= 0)) {
+        Toast.error('Competitor price must be positive');
+        return;
+      }
+
+      const avgPrice = revenue / units;
+      const rows = [
+        { label: 'Your average price', value: Utils.formatMoney(avgPrice) }
+      ];
+      if (isFinite(comp) && comp > 0) {
+        const index = avgPrice / comp;
+        const diff = ((avgPrice - comp) / comp) * 100;
+        rows.push({ label: 'Competitor avg price', value: Utils.formatMoney(comp) });
+        rows.push({ label: 'Price index', value: Utils.formatNumber(index, 2) });
+        rows.push({ label: 'vs Competitor', value: (diff >= 0 ? '+' : '') + Utils.formatPercent(diff), type: diff > 0 ? 'negative' : diff < 0 ? 'positive' : '' });
+      }
+      const html = ResultBuilder.build({
+        mainLabel: 'Your average price',
+        mainValue: Utils.formatMoney(avgPrice),
+        rows
+      });
+      Utils.showResult('pp-result', html);
+      History.save({
+        type: 'brandkpi', tab: 'brandkpi', calculator: 'pricePositioning',
+        inputs: { 'pp-revenue': revenue, 'pp-units': units, 'pp-comp': comp },
+        summary: `Avg price ${Utils.formatMoney(avgPrice)}`,
+        resultText: Utils.formatMoney(avgPrice)
+      });
+      Mascot.show();
+    },
+
+    cascadingPrice() {
+      const cost = Utils.getNum('cp-cost');
+      const logistics = Utils.getNum('cp-logistics');
+      const dist = Utils.getNum('cp-dist');
+      const retail = Utils.getNum('cp-retail');
+      const vat = Utils.getNum('cp-vat');
+
+      if (!Number.isFinite(cost) || cost < 0) {
+        Toast.error('Production cost must be non-negative');
+        return;
+      }
+      if (!Number.isFinite(logistics) || logistics < 0) {
+        Toast.error('Logistics cost must be non-negative');
+        return;
+      }
+      if (!Number.isFinite(dist) || dist < 0) {
+        Toast.error('Distributor markup must be non-negative');
+        return;
+      }
+      if (!Number.isFinite(retail) || retail < 0) {
+        Toast.error('Retailer markup must be non-negative');
+        return;
+      }
+      if (!Number.isFinite(vat) || vat < 0) {
+        Toast.error('VAT rate must be non-negative');
+        return;
+      }
+
+      const fullCost = cost + logistics;
+      const afterDist = fullCost * (1 + dist / 100);
+      const afterRetail = afterDist * (1 + retail / 100);
+      const retailPrice = afterRetail * (1 + vat / 100);
+
+      const html = ResultBuilder.build({
+        mainLabel: 'Retail price',
+        mainValue: Utils.formatMoney(retailPrice),
+        rows: [
+          { label: 'Production cost', value: Utils.formatMoney(cost) },
+          { label: '+ Logistics', value: Utils.formatMoney(logistics) },
+          { label: '= Full cost', value: Utils.formatMoney(fullCost) },
+          { label: `+ Distributor markup (${dist}%)`, value: Utils.formatMoney(afterDist - fullCost) },
+          { label: `= After distributor`, value: Utils.formatMoney(afterDist) },
+          { label: `+ Retailer markup (${retail}%)`, value: Utils.formatMoney(afterRetail - afterDist) },
+          { label: `= After retailer`, value: Utils.formatMoney(afterRetail) },
+          { label: `+ VAT (${vat}%)`, value: Utils.formatMoney(retailPrice - afterRetail) },
+          { label: '= Retail price', value: Utils.formatMoney(retailPrice), type: 'positive' }
+        ]
+      });
+      Utils.showResult('cp-result', html);
+      History.save({
+        type: 'brandkpi', tab: 'brandkpi', calculator: 'cascadingPrice',
+        inputs: { 'cp-cost': cost, 'cp-logistics': logistics, 'cp-dist': dist, 'cp-retail': retail, 'cp-vat': vat },
+        summary: `Cost ${cost} → Retail ${Utils.formatMoney(retailPrice)}`,
+        resultText: Utils.formatMoney(retailPrice)
+      });
+      Mascot.show();
+    },
+
+    netProfit() {
+      const revenue = Utils.getNum('np-revenue');
+      const cogs = Utils.getNum('np-cogs') || 0;
+      const operating = Utils.getNum('np-operating') || 0;
+      const otherIncome = Utils.getNum('np-other-income') || 0;
+      const otherExpenses = Utils.getNum('np-other-expenses') || 0;
+      const interest = Utils.getNum('np-interest') || 0;
+      const taxRate = Utils.getNum('np-tax') || 0;
+
+      // Validate revenue.
+      if (!Number.isFinite(revenue) || revenue < 0) {
+        Toast.error('Please enter a valid non-negative revenue');
+        return;
+      }
+
+      // Validate expenses and other income.
+      const amounts = [cogs, operating, otherIncome, otherExpenses, interest];
+
+      if (amounts.some(value => !Number.isFinite(value) || value < 0)) {
+        Toast.error('Amounts must be non-negative');
+        return;
+      }
+
+      // Validate tax rate.
+      if (!Number.isFinite(taxRate) || taxRate < 0 || taxRate > 100) {
+        Toast.error('Income tax rate must be between 0 and 100%');
+        return;
+      }
+
+      // Calculate profit.
+      const grossProfit = revenue - cogs;
+      const operatingProfit = grossProfit - operating;
+      const profitBeforeTax = operatingProfit + otherIncome - otherExpenses - interest;
+
+      // Apply income tax only to positive profit.
+      const incomeTax = Math.max(0, profitBeforeTax) * taxRate / 100;
+      const netProfit = profitBeforeTax - incomeTax;
+
+      const grossMargin = revenue === 0 ? NaN : (grossProfit / revenue) * 100;
+      const operatingMargin = revenue === 0 ? NaN : (operatingProfit / revenue) * 100;
+      const netMargin = revenue === 0 ? NaN : (netProfit / revenue) * 100;
+
+      const html = ResultBuilder.build({
+        mainLabel: 'Net Profit',
+        mainValue: Utils.formatMoney(netProfit),
+        rows: [
+          {
+            label: 'Revenue',
+            value: Utils.formatMoney(revenue)
+          },
+          {
+            label: 'Cost of goods sold (COGS)',
+            value: '-' + Utils.formatMoney(cogs)
+          },
+          {
+            label: 'Gross Profit',
+            value: Utils.formatMoney(grossProfit),
+            type: grossProfit >= 0 ? 'positive' : 'negative'
+          },
+          {
+            label: 'Gross Margin',
+            value: revenue === 0 ? '—' : Utils.formatPercent(grossMargin)
+          },
+          {
+            label: 'Operating expenses',
+            value: '-' + Utils.formatMoney(operating)
+          },
+          {
+            label: 'Operating Profit',
+            value: Utils.formatMoney(operatingProfit),
+            type: operatingProfit >= 0 ? 'positive' : 'negative'
+          },
+          {
+            label: 'Operating Margin',
+            value: revenue === 0 ? '—' : Utils.formatPercent(operatingMargin)
+          },
+          {
+            label: 'Other income',
+            value: '+' + Utils.formatMoney(otherIncome)
+          },
+          {
+            label: 'Other expenses',
+            value: '-' + Utils.formatMoney(otherExpenses)
+          },
+          {
+            label: 'Interest expense',
+            value: '-' + Utils.formatMoney(interest)
+          },
+          {
+            label: 'Profit Before Tax',
+            value: Utils.formatMoney(profitBeforeTax),
+            type: profitBeforeTax >= 0 ? 'positive' : 'negative'
+          },
+          {
+            label: `Income Tax (${taxRate}%)`,
+            value: '-' + Utils.formatMoney(incomeTax)
+          },
+          {
+            label: 'Net Profit',
+            value: Utils.formatMoney(netProfit),
+            type: netProfit >= 0 ? 'positive' : 'negative'
+          },
+          {
+            label: 'Net Profit Margin',
+            value: revenue === 0 ? '—' : Utils.formatPercent(netMargin)
+          }
+        ]
+      });
+
+      Utils.showResult('np-result', html);
+
+      History.save({
+        type: 'netprofit',
+        tab: 'netprofit',
+        calculator: 'netProfit',
+        inputs: {
+          'np-revenue': revenue,
+          'np-cogs': cogs,
+          'np-operating': operating,
+          'np-other-income': otherIncome,
+          'np-other-expenses': otherExpenses,
+          'np-interest': interest,
+          'np-tax': taxRate
+        },
+        summary: `Revenue ${Utils.formatMoney(revenue)}`,
+        resultText: Utils.formatMoney(netProfit)
+      });
+
+      Mascot.show();
+    },
+
+    _getVatRate() {
+      const rateSel = document.getElementById('vat-rate');
+      if (rateSel.value === 'custom') return Utils.getNum('vat-custom');
+      return parseFloat(rateSel.value);
+    },
+
+    vatAdd() {
+      document.getElementById('vat-result').closest('.card').dataset.autoCalculator = 'vatAdd';
+      const amount = Utils.getNum('vat-amount');
+      const rate = this._getVatRate();
+
+      if (!Number.isFinite(amount) || amount < 0) {
+        Toast.error('Amount must be non-negative');
+        return;
+      }
+      if (!Number.isFinite(rate) || rate < 0) {
+        Toast.error('VAT rate must be non-negative');
+        if (document.getElementById('vat-rate').value === 'custom') {
+        }
+        return;
+      }
+
+      const vat = amount * (rate / 100);
+      const total = amount + vat;
+      const html = ResultBuilder.build({
+        mainLabel: 'Total with VAT',
+        mainValue: Utils.formatMoney(total),
+        rows: [
+          { label: 'Net amount', value: Utils.formatMoney(amount) },
+          { label: `VAT (${rate}%)`, value: Utils.formatMoney(vat) },
+          { label: 'Gross amount', value: Utils.formatMoney(total) }
+        ]
+      });
+      Utils.showResult('vat-result', html);
+      History.save({ type: 'vat', tab: 'vat', calculator: 'vatAdd', inputs: { 'vat-amount': amount, 'vat-rate': document.getElementById('vat-rate').value, 'vat-custom': rate }, summary: `Add ${rate}% VAT to ${amount}`, resultText: Utils.formatMoney(total) });
+      Mascot.show();
+    },
+
+    vatExtract() {
+      document.getElementById('vat-result').closest('.card').dataset.autoCalculator = 'vatExtract';
+      const amount = Utils.getNum('vat-amount');
+      const rate = this._getVatRate();
+
+      if (!Number.isFinite(amount) || amount < 0) {
+        Toast.error('Amount must be non-negative');
+        return;
+      }
+      if (!Number.isFinite(rate) || rate < 0) {
+        Toast.error('VAT rate must be non-negative');
+        if (document.getElementById('vat-rate').value === 'custom') {
+        }
+        return;
+      }
+
+      const net = amount / (1 + rate / 100);
+      const vat = amount - net;
+      const html = ResultBuilder.build({
+        mainLabel: 'Net amount (without VAT)',
+        mainValue: Utils.formatMoney(net),
+        rows: [
+          { label: 'Gross amount', value: Utils.formatMoney(amount) },
+          { label: `VAT (${rate}%)`, value: Utils.formatMoney(vat) },
+          { label: 'Net amount', value: Utils.formatMoney(net) }
+        ]
+      });
+      Utils.showResult('vat-result', html);
+      History.save({ type: 'vat', tab: 'vat', calculator: 'vatExtract', inputs: { 'vat-amount': amount, 'vat-rate': document.getElementById('vat-rate').value, 'vat-custom': rate }, summary: `Extract ${rate}% VAT from ${amount}`, resultText: Utils.formatMoney(net) });
+      Mascot.show();
+    },
+
+    discount() {
+      const original = Utils.getNum('dsc-original');
+      const percent = Utils.getNum('dsc-percent');
+      if (!Utils.validate(original) || original < 0) {
+        Toast.error('Price must be non-negative');
+        return;
+      }
+      if (!Utils.validate(percent) || percent < 0 || percent > 100) {
+        Toast.error('Discount must be between 0 and 100%');
+        return;
+      }
+      const saved = original * (percent / 100);
+      const final = original - saved;
+      const html = ResultBuilder.build({
+        mainLabel: 'Final price',
+        mainValue: Utils.formatMoney(final),
+        rows: [
+          { label: 'Original price', value: Utils.formatMoney(original) },
+          { label: `Discount (${percent}%)`, value: '-' + Utils.formatMoney(saved), type: 'negative' },
+          { label: 'You save', value: Utils.formatMoney(saved), type: 'positive' }
+        ]
+      });
+      Utils.showResult('dsc-result', html);
+      History.save({ type: 'discount', tab: 'discount', calculator: 'discount', inputs: { 'dsc-original': original, 'dsc-percent': percent }, summary: `${original} - ${percent}%`, resultText: Utils.formatMoney(final) });
+      Mascot.show();
+    },
+
+    reverseDiscount() {
+      const discounted = Utils.getNum('rds-discounted');
+      const percent = Utils.getNum('rds-percent');
+      if (!Utils.validate(discounted) || discounted < 0) {
+        Toast.error('Price must be non-negative');
+        return;
+      }
+      if (!Utils.validate(percent) || percent < 0 || percent >= 100) {
+        Toast.error('Discount must be between 0 and 100%');
+        return;
+      }
+      const original = discounted / (1 - percent / 100);
+      const saved = original - discounted;
+      const html = ResultBuilder.build({
+        mainLabel: 'Original price',
+        mainValue: Utils.formatMoney(original),
+        rows: [
+          { label: 'Price after discount', value: Utils.formatMoney(discounted) },
+          { label: `Discount was (${percent}%)`, value: Utils.formatMoney(saved), type: 'negative' }
+        ]
+      });
+      Utils.showResult('rds-result', html);
+      History.save({ type: 'discount', tab: 'discount', calculator: 'reverseDiscount', inputs: { 'rds-discounted': discounted, 'rds-percent': percent }, summary: `Original price for ${discounted} after ${percent}% discount`, resultText: Utils.formatMoney(original) });
+      Mascot.show();
+    },
+
+    chainDiscount() {
+      const original = Utils.getNum('cd-original');
+
+      if (!Number.isFinite(original) || original <= 0) {
+        Toast.error('Please enter a positive original price');
+        return;
+      }
+
+      const discountIds = ['cd-d1', 'cd-d2', 'cd-d3', 'cd-d4'];
+
+      const discounts = discountIds.map(id => {
+        const raw = document.getElementById(id).value.trim();
+        return raw === '' ? 0 : Utils.getNum(id);
+      });
+
+      for (let i = 0; i < discounts.length; i++) {
+        const discount = discounts[i];
+
+        if (!Number.isFinite(discount) || discount < 0 || discount > 100) {
+          Toast.error('Each discount must be between 0 and 100%');
+          return;
+        }
+      }
+
+      if (!discounts.some(d => d > 0)) {
+        Toast.error('Please enter at least one discount');
+        return;
+      }
+
+      let price = original;
+      const appliedDiscounts = discounts.filter(d => d > 0);
+      appliedDiscounts.forEach(d => price = price * (1 - d / 100));
+
+      const totalSaved = original - price;
+      const totalPercent = (totalSaved / original) * 100;
+
+      const html = ResultBuilder.build({
+        mainLabel: 'Final price',
+        mainValue: Utils.formatMoney(price),
+        rows: [
+          { label: 'Original price', value: Utils.formatMoney(original) },
+          { label: 'Total saved', value: Utils.formatMoney(totalSaved), type: 'positive' },
+          { label: 'Effective discount', value: Utils.formatPercent(totalPercent) },
+          { label: 'Applied discounts', value: appliedDiscounts.map(d => d + '%').join(' → ') }
+        ]
+      });
+      Utils.showResult('cd-result', html);
+      History.save({ type: 'discount', tab: 'discount', calculator: 'chainDiscount', inputs: { 'cd-original': original, 'cd-d1': discounts[0], 'cd-d2': discounts[1], 'cd-d3': discounts[2], 'cd-d4': discounts[3] }, summary: `Chain discount on ${original}`, resultText: Utils.formatMoney(price) });
+      Mascot.show();
+    },
+
+    compareOffers() {
+      const unitName = Utils.getStr('off-unit');
+      const unit = unitName || 'unit';
+      const offers = [];
+      const inputs = {};
+
+      for (let i = 0; i < Offers.count; i++) {
+        const letter = String.fromCharCode(65 + i).toLowerCase();
+
+        const priceId = `off-${letter}-price`;
+        const qtyId = `off-${letter}-qty`;
+
+        const priceRaw = document.getElementById(priceId).value.trim();
+        const qtyRaw = document.getElementById(qtyId).value.trim();
+
+        // Completely empty offer — skip it.
+        if (!priceRaw && !qtyRaw) continue;
+
+        const price = Utils.getNum(priceId);
+        const qty = Utils.getNum(qtyId);
+
+        if (!priceRaw || !Number.isFinite(price) || price < 0) {
+          Toast.error(`Please complete Offer ${letter.toUpperCase()} correctly. Price must be non-negative.`);
+          return;
+        }
+        if (!qtyRaw || !Number.isFinite(qty) || qty <= 0) {
+          Toast.error(`Please complete Offer ${letter.toUpperCase()} correctly. Quantity must be greater than 0.`);
+          return;
+        }
+
+        offers.push({letter: letter.toUpperCase(), price, qty, unitPrice: price / qty});
+
+        inputs[priceId] = price;
+        inputs[qtyId] = qty;
+      }
+
+      if (offers.length < 2) { Toast.error('Please enter at least 2 valid offers'); return; }
+
+      offers.sort((a, b) => a.unitPrice - b.unitPrice);
+      const best = offers[0];
+      const worst = offers[offers.length - 1];
+      const diff = worst.unitPrice - best.unitPrice;
+      const diffPercent = worst.unitPrice > 0 ? (diff / worst.unitPrice) * 100 : null;
+
+      const rows = offers.map(o => ({
+        label: `Offer ${o.letter} per ${unit}`,
+        value: Utils.formatMoney(o.unitPrice)
+      }));
+
+      if (offers.length > 1 && best.unitPrice !== worst.unitPrice) {
+        rows.push({label: `Offer ${best.letter} is cheaper by`,
+          value: `${Utils.formatMoney(diff)} per ${unit} (${diffPercent === null ? '—' : Utils.formatPercent(diffPercent)})`,
+          type: 'positive'
+        });
+      }
+
+      const mainValue = offers.length > 1 && best.unitPrice !== worst.unitPrice ? `Offer ${best.letter} is best` : 'Offers are equal';
+
+      const html = ResultBuilder.build({ mainLabel: 'Result', mainValue, rows });
+      const chart = Offers.buildChart(offers, unit);
+      Utils.showResult('off-result', html + chart);
+
+      inputs['off-unit'] = unitName;
+      History.save({ type: 'offers', tab: 'offers', calculator: 'compareOffers', inputs, summary: `Compare ${offers.length} offers`, resultText: mainValue });
+      Mascot.show();
+    },
+
+    credit() {
+      const amount = Utils.getNum('crd-amount');
+      const rate = Utils.getNum('crd-rate');
+      const months = Utils.getNum('crd-months');
+      const type = document.getElementById('crd-type').value;
+
+      if (!Utils.validate(amount) || amount <= 0) {
+        Toast.error('Enter a positive loan amount');
+        return;
+      }
+      if (!Utils.validate(rate) || rate < 0) {
+        Toast.error('Enter a non-negative rate');
+        return;
+      }
+      if (!Utils.validate(months) || !Number.isInteger(months) || months <= 0) {
+        Toast.error('Enter a whole number of months');
+        return;
+      }
+
+      let firstPayment, lastPayment, total, overpayment;
+      const monthlyRate = rate / 100 / 12;
+
+      if (type === 'annuity') {
+        const payment = monthlyRate === 0 ? amount / months : amount * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+        firstPayment = payment;
+        lastPayment = payment;
+        total = payment * months;
+        overpayment = total - amount;
+      } else {
+        const principal = amount / months;
+        firstPayment = principal + amount * monthlyRate;
+        lastPayment = principal + principal * monthlyRate;
+        total = 0;
+        for (let i = 0; i < months; i++) total += principal + (amount - principal * i) * monthlyRate;
+        overpayment = total - amount;
+      }
+
+      const rows = [{ label: 'Loan amount', value: Utils.formatMoney(amount) }, { label: 'Annual rate', value: Utils.formatPercent(rate) }, { label: 'Term', value: `${months} months` }];
+
+      if (type === 'annuity') {
+        rows.unshift({ label: 'Monthly payment', value: Utils.formatMoney(firstPayment) });
+      } else {
+        rows.unshift({ label: 'First payment', value: Utils.formatMoney(firstPayment) });
+        rows.splice(1, 0, { label: 'Last payment', value: Utils.formatMoney(lastPayment) });
+      }
+      rows.push({ label: 'Total payment', value: Utils.formatMoney(total) });
+      rows.push({ label: 'Overpayment', value: Utils.formatMoney(overpayment), type: 'negative' });
+
+      const html = ResultBuilder.build({
+        mainLabel: type === 'annuity' ? 'Monthly payment' : 'First payment',
+        mainValue: Utils.formatMoney(firstPayment),
+        rows
+      });
+      Utils.showResult('crd-result', html);
+      History.save({ type: 'credit', tab: 'credit', calculator: 'credit', inputs: { 'crd-amount': amount, 'crd-rate': rate, 'crd-months': months, 'crd-type': type }, summary: `Loan ${amount} at ${rate}% for ${months} mo`, resultText: `${Utils.formatMoney(firstPayment)} / month` });
+      Mascot.show();
+    },
+
+    earlyRepayment() {
+      const amount = Utils.getNum('er-amount');
+      const rate = Utils.getNum('er-rate');
+      const months = Utils.getNum('er-months');
+      const repay = Utils.getNum('er-repay');
+
+      if (!Utils.validate(amount) || amount <= 0) {
+        Toast.error('Enter a positive loan amount');
+        return;
+      }
+      if (!Utils.validate(rate) || rate < 0) {
+        Toast.error('Enter a non-negative rate');
+        return;
+      }
+      if (!Utils.validate(months) || !Number.isInteger(months) || months <= 0) {
+        Toast.error('Enter a whole number of months');
+        return;
+      }
+      if (!Utils.validate(repay) || !Number.isInteger(repay) || repay < 0 || repay >= months) {
+        Toast.error('Enter repayment month from 0 up to the loan term');
+        return;
+      }
+
+      const monthlyRate = rate / 100 / 12;
+      const payment = monthlyRate === 0 ? amount / months : amount * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+      const totalNormal = payment * months;
+
+      let remaining = amount;
+      let totalPaid = 0;
+      for (let i = 0; i < repay; i++) {
+        const interest = remaining * monthlyRate;
+        const principal = payment - interest;
+        totalPaid += payment;
+        remaining -= principal;
+      }
+      totalPaid += remaining;
+
+      const saved = totalNormal - totalPaid;
+
+      const html = ResultBuilder.build({
+        mainLabel: 'Interest saved',
+        mainValue: Utils.formatMoney(saved),
+        rows: [
+          { label: 'Normal total payment', value: Utils.formatMoney(totalNormal) },
+          { label: 'Early repayment total', value: Utils.formatMoney(totalPaid) },
+          { label: 'You save', value: Utils.formatMoney(saved), type: 'positive' }
+        ]
+      });
+      Utils.showResult('er-result', html);
+      History.save({ type: 'credit', tab: 'credit', calculator: 'earlyRepayment', inputs: { 'er-amount': amount, 'er-rate': rate, 'er-months': months, 'er-repay': repay }, summary: `Early repayment after ${repay} months`, resultText: `Save ${Utils.formatMoney(saved)}` });
+      Mascot.show();
+    },
+
+    salary() {
+      const amount = Utils.getNum('sal-amount');
+      const type = document.getElementById('sal-type').value;
+      const taxRate = Utils.getNum('sal-tax');
+      const socialRate = Utils.getNum('sal-social');
+
+      if (!Number.isFinite(amount) || amount <= 0) {
+        Toast.error('Enter a positive amount');
+        return;
+      }
+
+      if (!Number.isFinite(taxRate) || taxRate < 0 || taxRate > 100 || (type === 'net' && taxRate >= 100)) {
+        Toast.error('Enter a valid income tax rate (below 100% for net salary)');
+        return;
+      }
+
+      if (!Number.isFinite(socialRate) || socialRate < 0 || socialRate > 100) {
+        Toast.error('Enter a valid social contribution rate');
+        return;
+      }
+
+      let gross, net, tax, social, employerCost;
+
+      if (type === 'gross') {
+        gross = amount;
+        tax = gross * (taxRate / 100);
+        net = gross - tax;
+        social = gross * (socialRate / 100);
+        employerCost = gross + social;
+      } else {
+        net = amount;
+        gross = net / (1 - taxRate / 100);
+        tax = gross - net;
+        social = gross * (socialRate / 100);
+        employerCost = gross + social;
+      }
+
+      const html = ResultBuilder.build({
+        mainLabel: type === 'gross' ? 'Net salary' : 'Gross salary',
+        mainValue: Utils.formatMoney(type === 'gross' ? net : gross),
+        rows: [
+          { label: 'Gross salary', value: Utils.formatMoney(gross) },
+          { label: `Income tax (${taxRate}%)`, value: '-' + Utils.formatMoney(tax), type: 'negative' },
+          { label: 'Net salary', value: Utils.formatMoney(net), type: 'positive' },
+          { label: `Social contributions (${socialRate}%)`, value: Utils.formatMoney(social) },
+          { label: 'Total employer cost', value: Utils.formatMoney(employerCost) }
+        ]
+      });
+      Utils.showResult('sal-result', html);
+      History.save({ type: 'salary', tab: 'salary', calculator: 'salary', inputs: { 'sal-amount': amount, 'sal-type': type, 'sal-tax': taxRate, 'sal-social': socialRate }, summary: `${type === 'gross' ? 'Gross' : 'Net'} ${amount}`, resultText: Utils.formatMoney(type === 'gross' ? net : gross) });
+      Mascot.show();
+    },
+
+    dateCalc() {
+      const startStr = document.getElementById('dt-start').value;
+      const endStr = document.getElementById('dt-end').value;
+      const days = Utils.getNum('dt-days');
+
+      if (!startStr) { Toast.error('Please enter start date'); return; }
+
+      // Parse date-only values as UTC calendar dates to avoid timezone shifts.
+      const parseDate = (value) => {
+        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+        if (!match) return null;
+
+        const date = new Date(Date.UTC(
+          Number(match[1]),
+          Number(match[2]) - 1,
+          Number(match[3])
+        ));
+
+        // Reject impossible dates such as 2024-02-31.
+        if (
+          date.getUTCFullYear() !== Number(match[1]) ||
+          date.getUTCMonth() !== Number(match[2]) - 1 ||
+          date.getUTCDate() !== Number(match[3])
+        ) return null;
+
+        return date;
+      };
+
+      const formatDate = (date) =>
+        date.toLocaleDateString(undefined, { timeZone: 'UTC' });
+
+      const start = parseDate(startStr);
+
+      if (!start) {
+        Toast.error('Please enter a valid start date');
+        return;
+      }
+
+      let resultText = '';
+      const rows = [];
+
+      if (endStr) {
+        const end = parseDate(endStr);
+
+        if (!end) {
+          Toast.error('Please enter a valid end date');
+          return;
+        }
+
+        const diffDays = Math.round(
+          Math.abs(end.getTime() - start.getTime()) / 86400000
+        );
+
+        resultText = `${diffDays} days`;
+        rows.push({ label: 'Start date', value: formatDate(start) });
+        rows.push({ label: 'End date', value: formatDate(end) });
+        rows.push({ label: 'Difference', value: `${diffDays} days` });
+
+      } else if (Number.isFinite(days) && Number.isInteger(days)) {
+        const result = new Date(start.getTime());
+        result.setUTCDate(result.getUTCDate() + days);
+
+        resultText = formatDate(result);
+        rows.push({ label: 'Start date', value: formatDate(start) });
+        rows.push({ label: 'Days to add', value: days });
+        rows.push({ label: 'Result date', value: formatDate(result) });
+      } else if (Number.isFinite(days)) {
+          Toast.error('Please enter a whole number of days');
+          return;
+      } else {
+        Toast.error('Please enter end date or days');
+        return;
+      }
+
+      const html = ResultBuilder.build({mainLabel: 'Result', mainValue: resultText, rows});
+      Utils.showResult('dt-result', html);
+      const mode = document.querySelector('input[name="dt-mode"]:checked').value;
+      History.save({type: 'date', tab: 'date', calculator: 'dateCalc',
+        inputs: {'dt-mode': mode, 'dt-start': startStr, 'dt-end': endStr, 'dt-days': days}, summary: 'Date calculation', resultText
+      });
+
+      Mascot.show();
+    }
+  };
+
+  const TooltipManager = {
+    init() {
+      document.addEventListener('click', (e) => {
+        const trigger = e.target.closest('.tooltip-trigger');
+        document.querySelectorAll('.tooltip-trigger.active').forEach(t => {
+          if (t !== trigger) t.classList.remove('active');
+        });
+        if (trigger) {
+          trigger.classList.toggle('active');
+
+          const content = trigger.querySelector('.tooltip-content');
+
+          if (content && window.innerWidth <= 480) {
+            if (trigger.classList.contains('active')) {
+              const rect = trigger.getBoundingClientRect();
+              const width = Math.min(240, window.innerWidth - 32);
+
+              const left = Math.max(
+                16,
+                Math.min(
+                  rect.left + rect.width / 2 - width / 2,
+                  window.innerWidth - width - 16
+                )
+              );
+
+              const top = Math.max(
+                8,
+                rect.top - content.offsetHeight - 8
+              );
+
+              content.style.left = `${left}px`;
+              content.style.top = `${top}px`;
+              content.style.width = `${width}px`;
+              content.style.setProperty(
+                '--tooltip-arrow-left',
+                `${rect.left + rect.width / 2 - left}px`
+              );
+            }
+          }
+
+          e.stopPropagation();
+        }
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') document.querySelectorAll('.tooltip-trigger.active').forEach(t => t.classList.remove('active'));
+      });
+    }
+  };
+
+  document.getElementById('inv-vat').addEventListener('change', (e) => {
+    document.getElementById('inv-custom-group').style.display = e.target.value === 'custom' ? 'block' : 'none';
+    Invoice.autoCalc();
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    Theme.init();
+    Tabs.init();
+    TooltipManager.init();
+    History.render();
+    History.renderTrash();
+    Invoice.calc();
+
+    // Connect visible labels to form controls.
+    document.querySelectorAll('.form-group').forEach(group => {
+      const label = group.querySelector('label');
+      const control = group.querySelector('input, select, textarea');
+
+      if (label && control && control.id && control.type !== 'radio') {
+        label.htmlFor = control.id;
+      }
+    });
+
+    // Add accessible names to invoice table inputs.
+    const invoiceHeaders = Array.from(
+      document.querySelectorAll('.invoice-table thead th')
+    ).map(th => th.textContent.trim());
+
+    document.querySelectorAll('#invoice-items tr').forEach(row => {
+      row.querySelectorAll('input').forEach((input, index) => {
+        if (!input.getAttribute('aria-label')) {
+          input.setAttribute(
+            'aria-label',
+            `Invoice ${invoiceHeaders[index] || `field ${index + 1}`}`
+          );
+        }
+      });
+    });
+
+    // Show/hide scroll to top button
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        scrollTopBtn.classList.add('visible');
+      } else {
+        scrollTopBtn.classList.remove('visible');
+      }
+    });
+
+  document.addEventListener('input', (e) => {
+    const input = e.target;
+
+    if (!input.matches(
+      'input[type="number"], input[type="date"], input[type="text"]'
+    )) return;
+
+    const card = input.closest('.card');
+    if (!card || card.closest('#invoice')) return;
+
+    const result = card.querySelector('.result');
+
+    if (!result || result.style.display === 'none') return;
+
+    AutoCalc.schedule(card, () => {
+      if (result.id === 'pinc-result' || result.id === 'vat-result') {
+        const defaultCalculator =
+          result.id === 'pinc-result' ? 'percentIncrease' : 'vatAdd';
+
+        const calculator = card.dataset.autoCalculator || defaultCalculator;
+
+        if (Calculators[calculator]) {
+          Calculators[calculator]();
+        }
+
+        return;
+      }
+
+      const btn = card.querySelector('.btn-primary');
+
+      if (btn) btn.click();
+    });
+  });
+
+  document.getElementById('sal-type').addEventListener('change', () => {
+    const result = document.getElementById('sal-result');
+
+    if (result && result.style.display !== 'none') {
+      AutoCalc.schedule(result.closest('.card'), () => {
+        Calculators.salary();
+      });
+    }
+  });
+
+  document.getElementById('crd-type').addEventListener('change', () => {
+    const result = document.getElementById('crd-result');
+
+    if (result && result.style.display !== 'none') {
+      AutoCalc.schedule(result.closest('.card'), () => {
+        Calculators.credit();
+      });
+    }
+  });
+
+  document.getElementById('vat-rate').addEventListener('change', (e) => {
+    document.getElementById('vat-custom-group').style.display = e.target.value === 'custom' ? 'block' : 'none';
+    const result = document.getElementById('vat-result');
+    if (result && result.style.display !== 'none') {
+      const card = result.closest('.card');
+      const calculator = card.dataset.autoCalculator || 'vatAdd';
+      if (Calculators[calculator]) {
+        AutoCalc.schedule(card, () => {
+          Calculators[calculator]();
+        });
+      }
+    }
+  });
+
+  document.getElementById('mc-markup').addEventListener('change', () => Calculators.markupToMargin(true));
+  document.getElementById('mc-margin').addEventListener('change', () => Calculators.marginToMarkup(true));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type === 'number') {
+        e.preventDefault();
+        const card = e.target.closest('.card');
+        if (card) {
+          const btn = card.querySelector('.btn-primary');
+          if (btn) btn.click();
+        }
+      }
+    });
+  });
+</script>
+</html>
